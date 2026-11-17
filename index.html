@@ -142,6 +142,12 @@ textarea.field{resize:vertical}
 .actions button{background:var(--ground);border:1px solid var(--action);border-radius:4rem;padding:5px 14px;font-size:.8125rem;font-weight:700;color:var(--action)}
 .actions button.keep{background:var(--action);color:#fff}
 .actions button.rm{border-color:var(--stroke);color:var(--ink-2);font-weight:400}
+.rate{display:flex;align-items:center;gap:1px;margin-top:6px;flex-wrap:wrap}
+.rate button{font-size:1.4rem;line-height:1;color:var(--ground-2);padding:2px}
+.rate button.on{color:var(--warn)}
+.rate .was{font-size:.75rem;color:var(--warn-dark);margin-left:8px}
+.closerow{display:flex;gap:12px;align-items:flex-start;background:var(--ground);border-radius:8px;padding:12px 14px;box-shadow:var(--shadow);cursor:pointer}
+.closerow input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--action);flex:none}
 .portions{font-size:.8125rem;color:var(--ink-2)}
 .portions b{color:var(--ink)}
 .portions .scale{color:var(--action-dark);font-weight:700}
@@ -248,6 +254,8 @@ details.free>summary{padding:10px 14px;font-weight:700;color:var(--action);curso
   <section id="view-menu" class="stack" style="gap:14px">
     <div class="toolbar">
       <button class="btn primary" id="proposeBtn">Propose-moi un menu</button>
+      <button class="btn" id="closeWeekBtn">Enregistrer les repas faits</button>
+      <span class="small" id="closeInfo"></span>
       <button class="linkbtn" id="thisWeek" hidden>Revenir à la semaine en cours</button>
     </div>
     <section class="controls">
@@ -351,6 +359,17 @@ details.free>summary{padding:10px 14px;font-weight:700;color:var(--action);curso
   </div>
 </div>
 
+<div class="sheet-back" id="closeBack" hidden>
+  <div class="sheet small" role="dialog" aria-modal="true" aria-labelledby="closeTitle">
+    <header>
+      <h3 id="closeTitle">Enregistrer les repas faits<small id="closeSub"></small></h3>
+      <button class="iconbtn" id="closeClose" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </header>
+    <div class="movelist" id="closeList"></div>
+    <div class="toolbar" style="padding:12px 16px calc(16px + env(safe-area-inset-bottom));border-top:1px solid var(--stroke)"><button class="btn primary" id="closeSend">Envoyer dans Airtable</button><button class="linkbtn" id="closeCancel">Annuler</button></div>
+  </div>
+</div>
+
 <div class="sheet-back" id="copyBack" hidden>
   <div class="sheet small" role="dialog" aria-modal="true" aria-labelledby="copyTitle">
     <header>
@@ -378,7 +397,8 @@ const T_MENUS = "tblMTZ9JVjIEJop5x";
 const F = {
   nom:"fldK5E7xwB5XxJiSu", status:"fldbHAVDllmQlfeSL", lien:"fldVPqAYmmm1MUhMY", note:"fldZGveVrrHKfxWbN",
   chg:"fldExVdcSTUx1CMic", duree:"fldywlzsMrY1wNrin", ajout:"flds53Pyz8BV2rapW", proteine:"fldCKr18me47QGtMb",
-  type:"fld27mrSfpDTd9ivZ", portions:"fldOkHwNboFYj8LWj", ing:"fldJfrkKVo4Yq8AcW"
+  type:"fld27mrSfpDTd9ivZ", portions:"fldOkHwNboFYj8LWj", ing:"fldJfrkKVo4Yq8AcW",
+  fois:"fldUSR3Hj8r14p53H", derniere:"fld7At68OVgHaxiTT"
 };
 const FM = { cle:"fld97KabIweyr6K9g", donnees:"fldDsu4GMeg0dNC9k", envoye:"fldR7v0yLT9zbLTWg" };
 
@@ -452,7 +472,7 @@ function emptyDay(){ return {personnes:null,lunchs:false,nbLunchs:1,recette:null
 function emptyWeek(start){
   const s=parseIso(start), jours={};
   for(let i=0;i<7;i++) jours[iso(addDays(s,i))]=emptyDay();
-  return {debut:start, fin:iso(addDays(s,6)), personnes:DEFAULT_PEOPLE, jours, epicerie:{coches:{},extras:[]}};
+  return {debut:start, fin:iso(addDays(s,6)), personnes:DEFAULT_PEOPLE, jours, epicerie:{coches:{},extras:[]}, notes:{}};
 }
 function normRecette(r){
   if(!r||!r.nom) return null;
@@ -462,7 +482,7 @@ function normRecette(r){
 function normalizeWeek(data,start){
   const base=emptyWeek(start);
   if(!data) return base;
-  const w={debut:start, fin:base.fin, personnes:Number.isFinite(data.personnes)?data.personnes:DEFAULT_PEOPLE, jours:{}, epicerie:{coches:{},extras:[]}};
+  const w={debut:start, fin:base.fin, personnes:Number.isFinite(data.personnes)?data.personnes:DEFAULT_PEOPLE, jours:{}, epicerie:{coches:{},extras:[]}, notes:{}};
   if(data.majLe) w.majLe=data.majLe;
   for(const k of Object.keys(base.jours)){
     const src=(data.jours&&data.jours[k])||{};
@@ -477,6 +497,8 @@ function normalizeWeek(data,start){
   const e=data.epicerie||{};
   if(e.coches&&typeof e.coches==="object") for(const k of Object.keys(e.coches)) if(e.coches[k]) w.epicerie.coches[k]=true;
   if(Array.isArray(e.extras)) w.epicerie.extras=e.extras.filter(x=>x&&x.nom).map(x=>({id:String(x.id||uid()),nom:String(x.nom),cat:CATS.includes(x.cat)?x.cat:"Autres"}));
+  if(data.notes&&typeof data.notes==="object") for(const id of Object.keys(data.notes)){ const n=Number(data.notes[id]); if(n>=1&&n<=5) w.notes[id]=n; }
+  if(data.envoi&&data.envoi.le) w.envoi={le:String(data.envoi.le),ids:Array.isArray(data.envoi.ids)?data.envoi.ids.map(String):[]};
   return w;
 }
 function normalizeSettings(d){
@@ -705,6 +727,29 @@ const AT = {
     }while(offset&&n<50);
     return out;
   },
+  async getRecipesByIds(ids){
+    const out=[], fids=[F.fois,F.derniere,F.note];
+    for(const part of chunks(ids,50)){
+      if(MODE==="claude"){
+        const p=await mcpCall("list_records_for_table",{baseId:BASE,tableId:T_REC,recordIds:part,fieldIds:fids,pageSize:100});
+        (p&&p.records||[]).forEach(r=>out.push({id:r.id,cells:r.cellValuesByFieldId||{}}));
+      }else{
+        const q=new URLSearchParams({returnFieldsByFieldId:"true",filterByFormula:"OR("+part.map(i=>"RECORD_ID()='"+i+"'").join(",")+")"}); fids.forEach(f=>q.append("fields[]",f));
+        const j=await rest("GET",T_REC+"?"+q.toString());
+        j.records.forEach(r=>out.push({id:r.id,cells:r.fields||{}}));
+      }
+    }
+    return out;
+  },
+  async updateRecipes(records){
+    let calls=0;
+    for(const part of chunks(records,10)){
+      if(MODE==="claude") await mcpCall("update_records_for_table",{baseId:BASE,tableId:T_REC,records:part,typecast:true});
+      else await rest("PATCH",T_REC,{records:part,typecast:true});
+      calls++;
+    }
+    return calls;
+  },
   async upsertMenus(rows){
     for(const part of chunks(rows,10)){
       const records=part.map(r=>({fields:{[FM.cle]:r.cle,[FM.donnees]:r.donnees,[FM.envoye]:r.envoye}}));
@@ -741,14 +786,15 @@ function parseCells(r){
   return cleanRecipe({
     id:r.id, nom:c[F.nom]||"", status:selName(c[F.status]), note:Number(c[F.note])||0,
     dureeSec:d==null||d===""?null:Number(d), proteine:selName(c[F.proteine]), type:selName(c[F.type]),
-    portions:Number(c[F.portions])||null, lien:c[F.lien]||null, ingredients:c[F.ing]||"", changements:c[F.chg]||""
+    portions:Number(c[F.portions])||null, lien:c[F.lien]||null, ingredients:c[F.ing]||"", changements:c[F.chg]||"", fois:Number(c[F.fois])||0, derniere:c[F.derniere]||null
   });
 }
 function cleanRecipe(r){
   return {id:String(r.id), nom:String(r.nom||""), status:r.status||null, note:Number(r.note)||0,
           dureeSec:Number.isFinite(r.dureeSec)?r.dureeSec:null, proteine:r.proteine||null, type:r.type||null,
           portions:Number.isFinite(r.portions)?r.portions:null, lien:r.lien||null,
-          ingredients:typeof r.ingredients==="string"?r.ingredients:"", changements:typeof r.changements==="string"?r.changements:""};
+          ingredients:typeof r.ingredients==="string"?r.ingredients:"", changements:typeof r.changements==="string"?r.changements:"",
+          fois:Number(r.fois)||0, derniere:typeof r.derniere==="string"?r.derniere:null};
 }
 const displayName = r => r.nom || ("(à compléter) "+(r.lien?normUrl(r.lien).split("/")[0]:"sans titre"));
 function refreshPlacedRecipes(){
@@ -889,6 +935,8 @@ function renderFoot(){
 /* ----- Menu ----- */
 function renderMenu(){
   $("weekPeople").textContent=week.personnes;
+  const nNotes=Object.keys(week.notes).length;
+  $("closeInfo").textContent=(week.envoi?"Envoyée le "+fmtDate(new Date(week.envoi.le))+". ":"")+(nNotes?nNotes+" note"+(nNotes>1?"s":"")+" à envoyer.":"");
   $("weekMinus").disabled=week.personnes<=1;
   let planned=0, proposed=0, lunchs=0, secs=0, unknown=0;
   for(const k in week.jours){ const j=week.jours[k]; if(j.recette){ planned++; if(j.recette.propose) proposed++; if(j.recette.dureeSec!=null) secs+=j.recette.dureeSec; else unknown++; } if(j.lunchs) lunchs+=j.nbLunchs; }
@@ -911,7 +959,7 @@ function renderMenu(){
         : '<button data-act="pick" data-day="'+k+'">Changer</button><button data-act="move" data-day="'+k+'">Déplacer</button><button class="rm" data-act="clear" data-day="'+k+'">Retirer</button>';
       rec='<div class="recipe filled'+(r.propose?" prop":"")+'"><div><div class="name">'+esc(r.nom)+'</div><div class="meta">'+
           '<span class="'+(tooLong?"over":"time")+'">'+(t?"⏱ "+t:"Durée non indiquée")+(tooLong?" (plus de "+settings.rapidesMaxMin+" min)":"")+'</span>'+
-          (r.libre?'<span class="tag ink">Hors Airtable</span>':"")+(r.lien?'<a href="'+esc(r.lien)+'" target="_blank" rel="noopener">Voir la recette</a>':"")+'</div></div>'+
+          (r.libre?'<span class="tag ink">Hors Airtable</span>':"")+(r.lien?'<a href="'+esc(r.lien)+'" target="_blank" rel="noopener">Voir la recette</a>':"")+'</div>'+rateHtml(k,r)+'</div>'+
           '<div class="actions">'+acts+'</div></div>'+por;
     }else rec='<div class="recipe empty"><button class="btn primary" data-act="pick" data-day="'+k+'">Choisir une recette</button>'+(missing[k]?'<span class="why">'+esc(missing[k])+'</span>':"")+'</div>';
     const tags=(quick?'<span class="tag">Soir rapide</span>':"")+(j.recette&&j.recette.propose?'<span class="tag warn">Proposé</span>':"")+(k===todayIso?'<span class="tag">Aujourd’hui</span>':"");
@@ -926,6 +974,13 @@ function renderMenu(){
   $("days").innerHTML=out.join("");
   document.querySelectorAll("textarea.comment").forEach(autoGrow);
 }
+function noteOf(id){ const src=recipes.find(x=>x.id===id); return src?src.note||0:0; }
+function rateHtml(k,r){
+  if(r.libre||!r.id) return "";
+  const old=noteOf(r.id), cur=week.notes[r.id]??old;
+  return '<div class="rate" role="group" aria-label="Note de la recette">'+[1,2,3,4,5].map(n=>'<button data-act="rate" data-day="'+k+'" data-n="'+n+'" class="'+(cur>=n?"on":"")+'" aria-label="'+n+' sur 5" aria-pressed="'+(cur===n)+'">★</button>').join("")+
+    (week.notes[r.id]!=null?'<span class="was">avant : '+(old||"aucune")+(old?" ★":"")+', à envoyer</span>':"")+'</div>';
+}
 function autoGrow(t){ t.style.height="auto"; t.style.height=Math.max(40,t.scrollHeight+2)+"px"; }
 
 $("days").addEventListener("click",e=>{
@@ -936,6 +991,7 @@ $("days").addEventListener("click",e=>{
     case "move": openMove(k); return;
     case "other": otherSuggestion(k); return;
     case "keep": if(j.recette) j.recette.propose=false; break;
+    case "rate": { const id=j.recette&&j.recette.id; if(!id) return; const n=Number(b.dataset.n), old=noteOf(id); if(n===old) delete week.notes[id]; else week.notes[id]=n; break; }
     case "clear": j.recette=null; delete missing[k]; break;
     case "pplus": j.personnes=dayPeople(k)+1; break;
     case "pminus": j.personnes=Math.max(1,dayPeople(k)-1); break;
@@ -975,14 +1031,92 @@ $("moveList").addEventListener("click",e=>{
   closeModal("moveBack"); movingDay=null; renderAll(); saveWeek(0);
 });
 
+/* ----- Fin de semaine : compteur, dernière fois et notes ----- */
+let closeRows=[];
+function fmtJour(iso){ const d=parseIso(iso); return JOURS_COURTS[d.getDay()].replace(".","")+" "+d.getDate()+" "+MOIS[d.getMonth()]; }
+function buildCloseRows(){
+  const by={}, keys=Object.keys(week.jours).sort(); let propNotKept=0;
+  for(const k of keys){
+    const r=week.jours[k].recette; if(!r||r.libre||!r.id) continue;
+    if(r.propose){ propNotKept++; continue; }
+    const g=by[r.id]||(by[r.id]={id:r.id,nom:r.nom,jours:[]}); g.jours.push(k);
+  }
+  for(const id of Object.keys(week.notes)) if(!by[id]){ const src=recipes.find(x=>x.id===id); if(src) by[id]={id,nom:displayName(src),jours:[]}; }
+  const sent=new Set(week.envoi?week.envoi.ids:[]);
+  const rows=Object.values(by).map(g=>{
+    const past=g.jours.filter(k=>k<=todayIso);
+    return Object.assign(g,{date:g.jours.length?g.jours[g.jours.length-1]:null, compter:g.jours.length>0&&past.length===g.jours.length&&!sent.has(g.id), dejaEnvoye:sent.has(g.id), futur:g.jours.some(k=>k>todayIso),
+      oldNote:noteOf(g.id), newNote:week.notes[g.id]??null});
+  });
+  return {rows,propNotKept};
+}
+function renderCloseList(){
+  const {rows,propNotKept}=buildCloseRows(); closeRows=rows;
+  const notes=[];
+  if(week.envoi) notes.push('<div class="banner">Cette semaine a déjà été envoyée le '+esc(fmtDate(new Date(week.envoi.le)))+'. Les recettes déjà comptées sont décochées pour éviter de les compter deux fois.</div>');
+  if(propNotKept) notes.push('<div class="small">'+propNotKept+' proposition'+(propNotKept>1?"s":"")+' non gardée'+(propNotKept>1?"s":"")+' ne '+(propNotKept>1?"sont":"est")+' pas incluse'+(propNotKept>1?"s":"")+'.</div>');
+  if(!rows.length){ $("closeList").innerHTML=notes.join("")+'<div class="none">Aucune recette d’Airtable gardée cette semaine. Les repas hors Airtable ne sont pas suivis.</div>'; $("closeSend").disabled=true; return; }
+  $("closeSend").disabled=false;
+  $("closeList").innerHTML=notes.join("")+rows.map((g,i)=>{
+    const src=recipes.find(x=>x.id===g.id)||{};
+    const lab=g.jours.length?(g.jours.length>1?g.jours.length+" fois cette semaine ("+g.jours.map(fmtJour).join(", ")+")":"Fait "+fmtJour(g.jours[0])):"Note seulement";
+    return '<label class="closerow"><input type="checkbox" data-i="'+i+'"'+(g.compter?" checked":"")+(g.jours.length?"":" disabled")+'><span style="flex:1;min-width:0"><b>'+esc(g.nom)+'</b>'+
+      '<span class="small" style="display:block">'+esc(lab)+(g.futur?", soir pas encore passé":"")+(g.dejaEnvoye?", déjà compté":"")+'</span>'+
+      '<span class="small" style="display:block">Compteur actuel : '+(src.fois||0)+(src.derniere?", dernière fois le "+esc(fmtJour(src.derniere)):"")+'</span>'+
+      (g.newNote!=null?'<span class="small" style="display:block;color:var(--ink)">Note : '+(g.oldNote||"aucune")+' → <b>'+g.newNote+' ★</b></span>':"")+'</span></label>';
+  }).join("")+'<p class="small" style="margin:0">Pour chaque recette cochée : +1 au nombre de fois par soir où elle a été servie, et la date du dernier de ces soirs. Les notes modifiées sont envoyées aussi.</p>';
+}
+function openClose(){
+  if(wWeek.timer) flush(wWeek);
+  const s=parseIso(weekStart), e=addDays(s,6);
+  $("closeSub").textContent="Semaine du "+s.getDate()+" "+MOIS[s.getMonth()]+" au "+e.getDate()+" "+MOIS[e.getMonth()];
+  renderCloseList(); openModal("closeBack","closeClose");
+}
+$("closeWeekBtn").onclick=openClose;
+$("closeCancel").onclick=()=>closeModal("closeBack");
+$("closeList").addEventListener("change",e=>{ const t=e.target; if(t.dataset.i==null) return; closeRows[Number(t.dataset.i)].compter=t.checked; });
+$("closeSend").onclick=async()=>{
+  const todo=closeRows.filter(g=>(g.compter&&g.jours.length)||g.newNote!=null);
+  if(!todo.length){ showAt("Rien à envoyer : coche au moins une recette ou change une note.","err"); return; }
+  $("closeSend").disabled=true; $("closeSend").textContent="Envoi…";
+  try{
+    const fresh={}; (await AT.getRecipesByIds(todo.map(g=>g.id))).forEach(r=>fresh[r.id]=r.cells);
+    const records=[], counted=[];
+    for(const g of todo){
+      const c=fresh[g.id]; if(!c) continue;
+      const fields={};
+      if(g.compter&&g.jours.length){
+        fields[F.fois]=(Number(c[F.fois])||0)+g.jours.length;
+        const prev=c[F.derniere]||""; fields[F.derniere]=prev>g.date?prev:g.date;
+        counted.push(g.id);
+      }
+      if(g.newNote!=null) fields[F.note]=g.newNote;
+      records.push({id:g.id,fields});
+    }
+    const missingN=todo.length-records.length;
+    const calls=await AT.updateRecipes(records)+Math.ceil(todo.length/50);
+    for(const rec of records){
+      const r=recipes.find(x=>x.id===rec.id); if(!r) continue;
+      if(rec.fields[F.fois]!=null) r.fois=rec.fields[F.fois];
+      if(rec.fields[F.derniere]) r.derniere=rec.fields[F.derniere];
+      if(rec.fields[F.note]!=null){ r.note=rec.fields[F.note]; delete week.notes[rec.id]; }
+    }
+    await saveRecipeCache();
+    if(counted.length){ const prevIds=week.envoi?week.envoi.ids:[]; week.envoi={le:new Date().toISOString(),ids:[...new Set(prevIds.concat(counted))]}; }
+    saveWeek(0); closeModal("closeBack");
+    showAt(records.length+" recette"+(records.length>1?"s":"")+" mise"+(records.length>1?"s":"")+" à jour dans Airtable ("+calls+" appel"+(calls>1?"s":"")+")."+(missingN?" "+missingN+" introuvable"+(missingN>1?"s":"")+" dans Airtable, ignorée"+(missingN>1?"s":"")+".":""),"info");
+  }catch(e){ showAt(atMessage(e)+" Vérifie dans Airtable avant de renvoyer : une partie a peut-être été enregistrée.","err"); }
+  finally{ $("closeSend").disabled=false; $("closeSend").textContent="Envoyer dans Airtable"; renderAll(); }
+};
+
 /* ----- Modales ----- */
 function openModal(id,focusId){ $(id).hidden=false; document.body.style.overflow="hidden"; setTimeout(()=>{ const f=$(focusId); if(f) f.focus(); },0); }
-function closeModal(id){ $(id).hidden=true; if($("sheetBack").hidden&&$("moveBack").hidden&&$("copyBack").hidden) document.body.style.overflow=""; }
-for(const [back,btn] of [["sheetBack","sheetClose"],["moveBack","moveClose"],["copyBack","copyClose"]]){
+function closeModal(id){ $(id).hidden=true; if($("sheetBack").hidden&&$("moveBack").hidden&&$("copyBack").hidden&&$("closeBack").hidden) document.body.style.overflow=""; }
+for(const [back,btn] of [["sheetBack","sheetClose"],["moveBack","moveClose"],["copyBack","copyClose"],["closeBack","closeClose"]]){
   $(btn).onclick=()=>{ closeModal(back); if(back==="sheetBack") pickingDay=null; };
   $(back).addEventListener("click",e=>{ if(e.target===$(back)){ closeModal(back); if(back==="sheetBack") pickingDay=null; } });
 }
-document.addEventListener("keydown",e=>{ if(e.key!=="Escape") return; for(const id of ["copyBack","moveBack","sheetBack"]) if(!$(id).hidden){ closeModal(id); if(id==="sheetBack") pickingDay=null; return; } });
+document.addEventListener("keydown",e=>{ if(e.key!=="Escape") return; for(const id of ["copyBack","closeBack","moveBack","sheetBack"]) if(!$(id).hidden){ closeModal(id); if(id==="sheetBack") pickingDay=null; return; } });
 function showCopy(title,hint,text){
   $("copyTitle").textContent=title; $("copyHint").textContent=hint; $("copyText").value=text;
   openModal("copyBack","copyClose"); setTimeout(()=>{ $("copyText").focus(); $("copyText").select(); },50);
@@ -1043,7 +1177,7 @@ function renderList(){
     const t=fmtDuree(r.dureeSec), over=quick&&r.dureeSec!=null&&r.dureeSec>max;
     return '<button class="card'+(cur&&cur.id===r.id?" current":"")+'" data-id="'+esc(r.id)+'"><span class="t">'+esc(displayName(r))+'</span>'+
       '<span class="m"><span class="chip'+(over?" over":"")+'">⏱ '+(t||"durée ?")+(over?", trop long ce soir":"")+'</span>'+(r.type?'<span class="chip">'+esc(r.type)+'</span>':"")+(r.proteine?'<span class="chip">'+esc(r.proteine)+'</span>':"")+
-      (r.status?'<span class="st '+stClass(r.status)+'">'+esc(r.status)+'</span>':"")+(r.note?starsRO(r.note):"")+(r.portions?'<span>'+r.portions+' portions</span>':"")+'</span></button>';
+      (r.status?'<span class="st '+stClass(r.status)+'">'+esc(r.status)+'</span>':"")+(r.note?starsRO(r.note):"")+(r.portions?'<span>'+r.portions+' portions</span>':"")+(r.fois?'<span>faite '+r.fois+' fois'+(r.derniere?", dernière le "+esc(fmtJour(r.derniere)):"")+'</span>':"")+'</span></button>';
   }).join("");
 }
 function chooseFree(nom,dureeSec){
@@ -1255,7 +1389,7 @@ $("sendRows").onclick=async()=>{
   }
   if(bad){ renderAdd(); showAt("Corrige les lignes signalées avant l’envoi.","err"); return; }
   const today=todayIso;
-  const fields=rows.map(r=>{ const f={[F.lien]:r.url.trim(),[F.status]:r.essaye?"Essayé":"À essayer",[F.ajout]:today}; if(r.note) f[F.note]=r.note; if(r.nom.trim()) f[F.nom]=r.nom.trim(); if(r.chg.trim()) f[F.chg]=r.chg.trim(); return f; });
+  const fields=rows.map(r=>{ const f={[F.lien]:r.url.trim(),[F.status]:r.essaye?"Essayé":"À essayer",[F.ajout]:today,[F.fois]:0}; if(r.note) f[F.note]=r.note; if(r.nom.trim()) f[F.nom]=r.nom.trim(); if(r.chg.trim()) f[F.chg]=r.chg.trim(); return f; });
   $("sendRows").disabled=true; $("sendInfo").textContent="Envoi…";
   try{
     const created=await AT.createRecipes(fields);
