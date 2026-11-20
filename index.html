@@ -9,232 +9,335 @@
 <meta name="apple-mobile-web-app-title" content="Menus">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>
-/* Thème repris du tableau Bibliothèque (suivi des lectures) : papier blanc, cartes gris pâle, encre presque noire, accent bleu, Arial.
-   Plan : en-tête (titre, onglets, semaine) puis un onglet à la fois. iPhone = 1 colonne; iPad = 3 ou 4 colonnes de soirs. */
+/* Charte Gontran (thème bleu du tableau Bibliothèque) : page blanche, cartes blanches à ombre légère,
+   encre presque noire, gris très pâle pour les zones secondaires, un seul bleu pour l'action et l'état actif.
+   iPhone = 1 colonne; iPad = 3 ou 4 colonnes de soirs. */
 :root{
-  --paper:#FFFFFF;
-  --card:#F1F1F1;
+  --accent:#5B8DBE;
+  --accent-dark:#3F6E9C;
+  --accent-08:rgba(91,141,190,.08);
+  --accent-12:rgba(91,141,190,.12);
+  --accent-35:rgba(91,141,190,.35);
   --ink:#111111;
   --ink-soft:#6E6E6E;
-  --accent:#5B8DBE;
-  --line:#E0E0E0;
+  --ink-10:rgba(17,17,17,.1);
   --gray:#A3A3A3;
-  --warn:#B0473A;
-  --accent-08:rgba(91,141,190,.08);
-  --accent-35:rgba(91,141,190,.35);
+  --muted:#C2C2C2;
+  --paper:#FFFFFF;
+  --card:#F1F1F1;
+  --paper-alt:#EDEDED;
+  --paper-dark:#E6E6E6;
+  --line:#E0E0E0;
+  --danger:#B0473A;
+  --danger-light:#FBF1EF;
+  --shadow:0 1px 3px rgba(0,0,0,.06);
+  --shadow-2:0 8px 32px rgba(0,0,0,.12);
+  --focus:0 0 0 2px #fff, 0 0 0 4px #3F6E9C;
   --font:Arial, Helvetica, sans-serif;
-  --r:16px;
+  /* alias internes */
+  --action:var(--accent); --action-dark:var(--accent-dark);
+  --hl-light:var(--accent-08); --ink-2:var(--ink-soft); --ink-3:var(--gray);
+  --stroke:var(--line); --ground:var(--paper); --ground-1:var(--card); --ground-2:var(--paper-dark);
   color-scheme:light;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.4;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
 button,input,textarea,select{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:0;padding:0}
-button:disabled{cursor:default;opacity:.5}
-a{color:var(--accent)}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.wrap{max-width:1400px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) calc(48px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));display:flex;flex-direction:column;gap:14px}
+button:disabled{cursor:default;opacity:.65}
+a{color:var(--accent-dark);text-decoration:underline}
+:focus-visible{outline:none;box-shadow:var(--focus)}
 [hidden]{display:none!important}
 
-/* En-tête */
-.apptitle{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.apptitle h1{margin:0;font-size:1.5rem;line-height:1.2;font-weight:700}
-.savestate{font-size:.8rem;color:var(--ink-soft);display:flex;align-items:center;gap:6px}
+/* Bande de marque + en-tête */
+.brandbar{display:none}
+.headband{background:var(--paper);padding-top:env(safe-area-inset-top)}
+.headin{max-width:1400px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right)) 0 max(16px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:12px}
+.apptitle{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.apptitle h1{margin:0;font-size:1.5rem;line-height:1.25;font-weight:700}
+.savestate{font-size:.8125rem;color:var(--ink-2);display:flex;align-items:center;gap:6px}
 .savestate .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
 .savestate.busy .dot{background:var(--gray)}
-.savestate.err{color:var(--warn)} .savestate.err .dot{background:var(--warn)}
-.tabs{display:flex;gap:8px}
-.tab{flex:1;padding:8px 6px;border-radius:8px;font-size:.88rem;font-weight:500;background:var(--card);color:var(--ink-soft);border:1px solid var(--line);text-align:center;white-space:nowrap}
-.tab[aria-selected="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-.weeknav{display:flex;align-items:center;gap:8px}
-.weeknav h2{flex:1;margin:0;font-size:1.15rem;font-weight:700;line-height:1.2;text-wrap:balance}
-.weeknav h2 small{display:block;font-size:.72rem;font-weight:700;color:var(--ink-soft);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
-.iconbtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--paper);display:grid;place-items:center;flex:none}
-.iconbtn svg{width:17px;height:17px}
+.savestate.err{color:var(--danger)} .savestate.err .dot{background:var(--danger)}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{min-height:44px;padding:10px 8px;font-size:.875rem;font-weight:500;color:var(--ink-soft);background:var(--card);border:1px solid var(--line);border-radius:8px;white-space:nowrap;text-align:center}
+.tab[aria-selected="true"]{color:var(--paper);background:var(--ink);border-color:var(--ink)}
 
-/* Boutons et pastilles */
-.btn{border-radius:8px;padding:8px 14px;font-size:.9rem;font-weight:500;background:var(--card);border:1px solid var(--line);color:var(--ink)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn.dark{background:var(--ink);border-color:var(--ink);color:var(--paper)}
-.linkbtn{color:var(--accent);font-size:.85rem;text-decoration:underline}
-.pill{display:inline-flex;align-items:center;padding:5px 12px;border-radius:999px;font-size:.85rem;white-space:nowrap;border:1px solid var(--accent-35);background:var(--accent-08);color:var(--accent)}
-.pill[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--card)}
-.tag{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:999px;background:var(--accent-08);color:var(--accent);border:1px solid var(--accent-35)}
-.tag.ink{background:var(--card);color:var(--ink-soft);border-color:var(--line)}
+
+.wrap{max-width:1400px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-right)) calc(48px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:16px}
+.weeknav{display:flex;align-items:center;gap:10px}
+.weeknav h2{flex:1;margin:0;font-size:1.5rem;font-weight:700;line-height:1.15;text-wrap:balance}
+.weeknav h2 small{display:block;font-size:.875rem;font-weight:400;color:var(--ink-2);margin-bottom:4px}
+.iconbtn{width:44px;height:44px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);display:grid;place-items:center;flex:none;padding:0}
+.iconbtn svg{width:18px;height:18px}
+
+/* Boutons, filtres, étiquettes */
+.btn{min-height:44px;border-radius:8px;padding:10px 18px;font-size:.875rem;line-height:1.25rem;font-weight:500;background:var(--card);border:1px solid var(--line);color:var(--ink);transition:background-color .15s,color .15s}
+
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--paper);font-weight:700}
+
+.btn.dark{background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:700}
+
+.linkbtn{color:var(--accent-dark);font-size:.875rem;font-weight:700;text-decoration:underline}
+.pill{display:inline-flex;align-items:center;min-height:36px;padding:6px 14px;border-radius:9999px;font-size:.875rem;white-space:nowrap;border:1px solid var(--accent-35);background:var(--accent-08);color:var(--accent-dark)}
+.pill[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--paper);font-weight:700}
+.tag{font-size:.75rem;font-weight:700;padding:2px 8px;border-radius:9999px;background:var(--accent-12);color:var(--accent-dark)}
+.tag.ink{background:var(--ink-10);color:var(--ink)}
+.tag.warn{background:var(--paper);color:var(--ink-soft);box-shadow:inset 0 0 0 1px var(--gray)}
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 .chips.wrapc{flex-wrap:wrap;overflow:visible}
 .chips::-webkit-scrollbar{display:none}
-.ftitle{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft)}
-.small{font-size:.82rem;color:var(--ink-soft)}
+.ftitle{font-size:.875rem;font-weight:700;color:var(--ink)}
+.small{font-size:.8125rem;color:var(--ink-2)}
 .stack{display:flex;flex-direction:column;gap:6px}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 
-/* Cartes */
-.panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:12px}
-.panel h3{margin:0;font-size:1rem}
-.banner{border-radius:12px;padding:10px 14px;font-size:.9rem;background:var(--card);border:1px solid var(--line);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+/* Cartes et alertes */
+.panel{background:var(--ground);border-radius:16px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px}
+.panel h3{margin:0;font-size:1.25rem;font-weight:700}
+.banner{border-radius:8px;padding:12px 16px;font-size:.9375rem;background:var(--card);border:1px solid var(--line);color:var(--ink);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .banner.info{background:var(--accent-08);border-color:var(--accent-35)}
-.banner.err{border-color:var(--warn);color:var(--warn);background:#FBF1EF}
+.banner.err{background:var(--danger-light);border-color:var(--danger-light);color:var(--danger)}
 
 /* Stepper et interrupteur */
-.stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--paper);flex:none}
-.stepper button{width:36px;height:34px;font-size:1.1rem;font-weight:700;color:var(--accent)}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--ground);flex:none}
+.stepper button{width:44px;height:40px;font-size:1.15rem;font-weight:700;color:var(--ink)}
+.stepper button:disabled{color:var(--ink-3)}
 .stepper output{min-width:30px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
-.switch{display:inline-flex;align-items:center;gap:8px;font-size:.92rem;cursor:pointer;user-select:none}
-.switch input{appearance:none;-webkit-appearance:none;width:42px;height:24px;border-radius:999px;background:var(--line);position:relative;margin:0;cursor:pointer;transition:background .15s;flex:none}
-.switch input::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
-.switch input:checked{background:var(--accent)}
-.switch input:checked::after{transform:translateX(18px)}
-.field{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--card);width:100%;min-width:0}
+.switch{display:inline-flex;align-items:center;gap:8px;font-size:.9375rem;cursor:pointer;user-select:none}
+.switch input{appearance:none;-webkit-appearance:none;width:44px;height:24px;border-radius:999px;background:var(--ink-3);position:relative;margin:0;cursor:pointer;transition:background .15s;flex:none}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .15s}
+.switch input:checked{background:var(--action)}
+.switch input:checked::after{transform:translateX(20px)}
+.field{border:1px solid var(--line);border-radius:8px;padding:9px 12px;background:var(--card);width:100%;min-width:0;font-size:1rem}
 textarea.field{resize:vertical}
+.field::placeholder,textarea.comment::placeholder{color:var(--ink-2)}
 
 /* Onglet Menu */
-.controls{display:grid;gap:10px}
-.people{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--card);border-radius:var(--r);padding:10px 14px}
-.people label{font-weight:700;font-size:.95rem}
-.people .hint{display:block;font-weight:400;font-size:.8rem;color:var(--ink-soft)}
-.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.tile{background:var(--paper);border-radius:var(--r);padding:10px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06);border:1px solid var(--line)}
-.tile b{display:block;font-size:1.35rem;font-variant-numeric:tabular-nums}
-.tile span{font-size:.75rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em}
-.days{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px;align-items:start}
-.day{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.06);border-left:5px solid var(--line)}
-.day.planned{border-left-color:var(--accent)}
-.day.proposed{border-left-color:var(--gray)}
-.day.today{box-shadow:0 0 0 2px var(--accent-35)}
+.controls{display:grid;gap:12px}
+.people{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--ground);border-radius:16px;padding:12px 16px;box-shadow:var(--shadow)}
+.people label{font-weight:700}
+.people .hint{display:block;font-weight:400;font-size:.8125rem;color:var(--ink-2)}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.tile{background:var(--ground);border-radius:16px;padding:12px 16px;box-shadow:var(--shadow)}
+.tile b{display:block;font-size:1.875rem;line-height:2.25rem;font-variant-numeric:tabular-nums}
+.tile span{font-size:.75rem;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft)}
+.days{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:16px;align-items:start}
+.day{background:var(--ground);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.day.planned{border-color:var(--line)}
+.day.proposed{border-color:var(--accent-35)}
+.day.today{border-color:var(--ink);box-shadow:var(--shadow),inset 0 0 0 1px var(--ink)}
 .dayhead{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.dayhead h3{margin:0;font-size:1.08rem}
-.dayhead h3 .date{font-weight:400;color:var(--ink-soft);font-size:.92rem;margin-left:4px}
+.dayhead h3{margin:0;font-size:1.25rem;font-weight:700}
+.dayhead h3 .date{font-weight:400;color:var(--ink-2);font-size:1rem;margin-left:6px}
 .tags{display:flex;gap:4px;flex-wrap:wrap}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.row .lbl{font-size:.9rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.override{color:var(--accent);font-weight:700}
-.resetbtn{color:var(--ink-soft);font-size:.8rem;text-decoration:underline}
-.recipe{border:1px dashed var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
-.recipe.empty{align-items:center}
-.recipe.empty .why{font-size:.8rem;color:var(--ink-soft);text-align:center}
+.row .lbl{font-size:.9375rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.override{color:var(--accent-dark);font-weight:700}
+.resetbtn{color:var(--accent-dark);font-size:.8125rem;text-decoration:underline}
+.recipe{border:1px dashed var(--muted);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.recipe.empty{align-items:center;background:var(--ground-1)}
+.recipe.empty .why{font-size:.8125rem;color:var(--ink-2);text-align:center}
 .recipe.filled{border:0;background:var(--card)}
-.recipe.prop{border:1.5px dashed var(--accent);background:var(--accent-08)}
-.recipe .name{font-weight:700;line-height:1.25}
-.recipe .meta{font-size:.84rem;color:var(--ink-soft);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.recipe.prop{border:1px dashed var(--accent);background:var(--accent-08)}
+.recipe .name{font-weight:700;font-size:1.0625rem;line-height:1.3}
+.recipe .meta{font-size:.875rem;color:var(--ink-2);display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:2px}
 .recipe .meta .time{color:var(--ink);font-weight:700}
-.recipe .meta .over{color:var(--warn);font-weight:700}
+.recipe .meta .over{color:var(--danger);font-weight:700}
 .actions{display:flex;gap:6px;flex-wrap:wrap}
-.actions button{background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:.84rem;color:var(--ink)}
-.actions button.keep{background:var(--accent);border-color:var(--accent);color:#fff}
-.actions button.rm{color:var(--ink-soft)}
-.portions{font-size:.8rem;color:var(--ink-soft)}
+.actions button{min-height:36px;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:6px 14px;font-size:.8125rem;font-weight:500;color:var(--ink)}
+.actions button.keep{background:var(--accent);border-color:var(--accent);color:var(--paper);font-weight:700}
+.actions button.rm{border-color:transparent;background:transparent;color:var(--ink-soft);font-weight:400}
+.rate{display:flex;align-items:center;gap:1px;margin-top:6px;flex-wrap:wrap}
+.rate button{font-size:1.5rem;line-height:1;color:var(--line);padding:4px 2px;min-width:30px;min-height:36px}
+.rate button.on{color:var(--accent)}
+.rate .was{font-size:.75rem;color:var(--ink-soft);margin-left:8px}
+.closerow{display:flex;gap:12px;align-items:flex-start;background:var(--ground);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow);cursor:pointer}
+.closerow input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--action);flex:none}
+.portions{font-size:.8125rem;color:var(--ink-2)}
 .portions b{color:var(--ink)}
-.portions .scale{color:var(--accent);font-weight:700}
-textarea.comment{width:100%;min-height:40px;resize:vertical;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--paper);font-size:.92rem}
-textarea.comment::placeholder,.field::placeholder{color:var(--gray)}
-.foot{font-size:.8rem;color:var(--ink-soft);text-align:center}
+.portions .scale{color:var(--accent-dark);font-weight:700}
+textarea.comment{width:100%;min-height:44px;resize:vertical;border:1px solid var(--line);border-radius:8px;padding:9px 12px;background:var(--card);font-size:1rem}
+.foot{font-size:.8125rem;color:var(--ink-2);text-align:center}
 
 /* Onglet Épicerie */
-.groc{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:12px;align-items:start}
-.cat{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.cat h3{margin:0 0 6px;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);display:flex;justify-content:space-between}
-.item{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--card)}
+.groc{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:16px;align-items:start}
+.cat{background:var(--ground);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow)}
+.cat h3{margin:0 0 6px;font-size:1.0625rem;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.cat h3 span:last-child{font-size:.8125rem;font-weight:400;color:var(--ink-2)}
+.item{display:flex;gap:12px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--ground-2)}
 .item:first-of-type{border-top:0}
-.item input{width:20px;height:20px;margin:1px 0 0;accent-color:var(--accent);flex:none}
+.item input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--action);flex:none}
 .item .what{flex:1;min-width:0}
 .item .q{font-weight:700;font-variant-numeric:tabular-nums}
-.item .src{display:block;font-size:.76rem;color:var(--gray)}
-.item.done .what{color:var(--gray);text-decoration:line-through}
-.item .rmx{color:var(--gray);font-size:1.1rem;line-height:1;padding:0 4px}
-.addextra{display:grid;grid-template-columns:1fr 160px auto;gap:6px}
+.item .src{display:block;font-size:.75rem;color:var(--ink-2)}
+.item.done .what{color:var(--ink-3);text-decoration:line-through}
+.item .rmx{color:var(--ink-2);font-size:1.2rem;line-height:1;padding:0 4px}
+.addextra{display:grid;grid-template-columns:1fr 180px auto;gap:8px}
 
 /* Onglet Ajouter */
-.addrow{display:grid;gap:8px;background:var(--card);border-radius:12px;padding:10px 12px}
+.addrow{display:grid;gap:10px;background:var(--ground);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow)}
 .addrow .top{display:flex;gap:8px;align-items:center}
-.addrow .top .field{background:var(--paper)}
-.addrow .field{background:var(--paper)}
-.rowerr{font-size:.8rem;color:var(--warn)}
-.stars button{font-size:1.4rem;line-height:1;color:var(--line);padding:0 2px}
+.rowerr{font-size:.8125rem;color:var(--danger);font-weight:700}
+.stars button{font-size:1.5rem;line-height:1;color:var(--line);padding:4px 2px;min-width:30px;min-height:36px}
 .stars button.on{color:var(--accent)}
 .todo li{margin:4px 0}
 
 /* Feuilles modales */
-.sheet-back{position:fixed;inset:0;background:rgba(17,17,17,.35);display:flex;align-items:flex-end;justify-content:center;z-index:20}
-.sheet{background:var(--paper);width:100%;max-width:820px;height:92%;border-radius:18px 18px 0 0;display:flex;flex-direction:column;overflow:hidden}
+.sheet-back{position:fixed;inset:0;background:rgba(17,17,17,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet{background:var(--ground);width:100%;max-width:840px;height:92%;border-radius:16px 16px 0 0;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow-2)}
 .sheet.small{height:auto;max-height:85%}
-.sheet header{padding:14px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
-.sheet header h3{flex:1;margin:0;font-size:1.08rem;line-height:1.2}
-.sheet header h3 small{display:block;font-weight:400;color:var(--ink-soft);font-size:.84rem}
-.filters{padding:10px 16px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--line);max-height:48%;overflow-y:auto}
-.fmeta{display:flex;justify-content:space-between;align-items:center;font-size:.84rem;color:var(--ink-soft);gap:8px;flex-wrap:wrap}
-details.free{border:1px solid var(--line);border-radius:10px;background:var(--card)}
-details.free>summary{padding:8px 12px;font-weight:700;color:var(--accent);cursor:pointer}
-.freebody{padding:4px 12px 12px;display:grid;gap:8px}
-.freeform{display:grid;grid-template-columns:1fr 84px auto;gap:6px}
-.freeform .field{background:var(--paper)}
-.list{flex:1;overflow-y:auto;padding:10px 16px 24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:8px;align-content:start}
+.sheet header{padding:16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--stroke)}
+.sheet header h3{flex:1;margin:0;font-size:1.25rem;line-height:1.25}
+.sheet header h3 small{display:block;font-weight:400;color:var(--ink-2);font-size:.875rem;margin-top:2px}
+.filters{padding:12px 16px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--stroke);max-height:48%;overflow-y:auto;background:var(--ground-1)}
+.fmeta{display:flex;justify-content:space-between;align-items:center;font-size:.875rem;color:var(--ink-2);gap:8px;flex-wrap:wrap}
+details.free{border-radius:16px;background:var(--ground);box-shadow:var(--shadow)}
+details.free>summary{padding:12px 16px;font-weight:700;color:var(--accent-dark);cursor:pointer}
+.freebody{padding:4px 14px 14px;display:grid;gap:8px}
+.freeform{display:grid;grid-template-columns:1fr 84px auto;gap:8px}
+.list{flex:1;overflow-y:auto;padding:12px 16px 24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:10px;align-content:start;background:var(--ground-1)}
 .list .fmeta,.list .none{grid-column:1/-1}
-.card{width:100%;text-align:left;border:1px solid var(--line);background:var(--paper);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:5px}
-.card:active{background:var(--card)}
-.card.current{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
-.card .t{font-weight:700;line-height:1.25}
-.card .m{display:flex;flex-wrap:wrap;gap:6px;font-size:.8rem;color:var(--ink-soft);align-items:center}
-.card .m .chip{background:var(--card);border-radius:6px;padding:1px 7px}
-.card .m .chip.over{color:var(--warn)}
-.st{font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;border-radius:6px;padding:1px 7px}
-.st.essaye{background:var(--ink);color:var(--paper)}
-.st.aessayer{background:var(--accent-08);color:var(--accent);border:1px solid var(--accent-35)}
-.st.nonplus{color:var(--warn);border:1px solid var(--warn)}
+.card{width:100%;text-align:left;background:var(--ground);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow);border:2px solid transparent}
+.card:active{background:var(--accent-08)}
+.card.current{border-color:var(--accent);background:var(--accent-08)}
+.card .t{font-weight:700;line-height:1.3}
+.card .m{display:flex;flex-wrap:wrap;gap:6px;font-size:.8125rem;color:var(--ink-2);align-items:center}
+.card .m .chip{background:var(--card);border:1px solid var(--line);border-radius:9999px;padding:1px 8px}
+.card .m .chip.over{background:var(--danger-light);border-color:var(--danger-light);color:var(--danger)}
+.st{font-weight:700;font-size:.75rem;border-radius:9999px;padding:1px 8px}
+.st.essaye{background:var(--ink-10);color:var(--ink)}
+.st.aessayer{background:var(--accent-12);color:var(--accent-dark)}
+.st.nonplus{background:rgba(194,194,194,.25);color:var(--ink-soft);text-decoration:line-through}
 .starsro{color:var(--accent);letter-spacing:1px}
 .starsro .off{color:var(--line)}
-.none{padding:24px 8px;text-align:center;color:var(--ink-soft)}
-.movelist{padding:10px 16px 20px;display:grid;gap:8px;overflow-y:auto}
-.movecard{text-align:left;border:1px solid var(--line);background:var(--paper);border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.none{padding:24px 8px;text-align:center;color:var(--ink-2)}
+.movelist{padding:12px 16px 20px;display:grid;gap:10px;overflow-y:auto;background:var(--ground-1)}
+.movecard{text-align:left;background:var(--ground);border-radius:16px;padding:12px 14px;display:flex;justify-content:space-between;gap:10px;align-items:center;box-shadow:var(--shadow)}
 .movecard b{display:block}
-.movecard span{font-size:.84rem;color:var(--ink-soft)}
-.movecard em{font-style:normal;font-size:.8rem;font-weight:700;color:var(--accent);flex:none}
-.copybox{width:100%;min-height:200px;font-family:var(--font);font-size:.85rem}
+.movecard span{font-size:.875rem;color:var(--ink-2)}
+.movecard em{font-style:normal;font-size:.8125rem;font-weight:700;color:var(--accent-dark);flex:none}
+.copybox{width:100%;min-height:200px;font-size:1rem}
 
 /* Réglages */
-.fixes{display:grid;gap:6px}
-.fixrow{display:grid;grid-template-columns:90px 1fr 80px;gap:6px;align-items:center}
-.fixrow span{font-size:.88rem;font-weight:700}
-
-.head2{display:flex;flex-direction:column;gap:12px}
-
-/* Ajouts depuis : notes à changer, fin de semaine */
-.tag.warn{background:var(--card);color:var(--ink-soft);border-color:var(--line)}
-.rate{display:flex;align-items:center;gap:1px;margin-top:6px;flex-wrap:wrap}
-.rate button{font-size:1.35rem;line-height:1;color:var(--line);padding:2px}
-.rate button.on{color:var(--accent)}
-.rate .was{font-size:.75rem;color:var(--ink-soft);margin-left:8px}
-.closerow{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);background:var(--paper);border-radius:12px;padding:10px 12px;cursor:pointer}
-.closerow input{width:20px;height:20px;margin:1px 0 0;accent-color:var(--accent);flex:none}
+.fixes{display:grid;gap:8px}
+.fixrow{display:grid;grid-template-columns:96px 1fr 84px;gap:8px;align-items:center}
+.fixrow span{font-size:.9375rem;font-weight:700}
 
 @media (min-width:900px){
   .controls{grid-template-columns:minmax(300px,380px) 1fr}
-  .head2{display:grid;grid-template-columns:1fr minmax(420px,560px);gap:16px;align-items:center}
+  .weeknav h2{font-size:1.875rem}
   .sheet-back{align-items:center}
-  .sheet{height:86%;border-radius:18px}
+  .sheet{height:86%;border-radius:16px}
 }
-@media (max-width:420px){ .addextra{grid-template-columns:1fr} .tab{font-size:.8rem;padding:8px 2px} }
-@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+@media (max-width:420px){ .addextra{grid-template-columns:1fr} .summary{gap:8px} .tile{padding:10px 12px} .tile b{font-size:1.5rem;line-height:1.2} .tile span{font-size:.6875rem;letter-spacing:.03em} }
+/* ===== Icônes Phosphor et finition (principes d'Emil Kowalski) ===== */
+:root{
+  --ease-out:cubic-bezier(.23,1,.32,1);
+  --ease-drawer:cubic-bezier(.32,.72,0,1);
+}
+.ic{width:1.15em;height:1.15em;flex:none;display:inline-block;vertical-align:-.2em}
+button,.btn,.pill,.tab,.card,.movecard,summary,.switch{touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.btn,.linkbtn,.actions button,details.free>summary,.movecard em{display:inline-flex;align-items:center;gap:6px}
+.linkbtn .ic{width:1em;height:1em}
+.btn .ic{width:18px;height:18px}
+.actions button .ic{width:15px;height:15px}
+/* Onglets : icône au-dessus du libellé, façon barre d'onglets iOS */
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:56px;padding:8px 4px;font-size:.75rem}
+.tab .ic{width:22px;height:22px}
+.iconbtn .ic{width:20px;height:20px}
+.stepper button{display:grid;place-items:center}
+.stepper button .ic{width:18px;height:18px}
+.people label,.row .lbl,.switch{display:inline-flex;align-items:center;gap:6px}
+.people label{display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center}
+.people label>.ic{grid-row:1}
+.people .hint{grid-column:2}
+.people label>.ic,.row .lbl>.ic,.switch>.ic{width:18px;height:18px;color:var(--ink-soft)}
+.tile{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.tile>.ic{width:22px;height:22px;color:var(--accent);margin-bottom:2px}
+.tag{display:inline-flex;align-items:center;gap:4px}
+.tag .ic{width:13px;height:13px}
+.recipe .meta .time,.recipe .meta .over,.card .m .chip{display:inline-flex;align-items:center;gap:4px}
+.recipe .meta .ic,.card .m .chip .ic{width:15px;height:15px}
+.recipe .meta a{display:inline-flex;align-items:center;gap:4px}
+.recipe .meta a .ic{width:14px;height:14px}
+.recipe.empty .btn .ic{width:18px;height:18px}
+.rate button,.stars button{display:inline-grid;place-items:center}
+.rate button .ic,.stars button .ic{width:24px;height:24px}
+.rate button:not(.on),.stars button:not(.on),.starsro .off{color:var(--muted)}
+@media (min-width:900px){ .tab{flex-direction:row;gap:8px;min-height:48px;font-size:.875rem} .tab .ic{width:20px;height:20px} }
+.starsro{display:inline-flex;align-items:center;gap:1px;letter-spacing:0}
+.starsro .ic{width:14px;height:14px}
+.starsro .off{display:inline-flex;gap:1px}
+.cat h3>span:first-child{display:inline-flex;align-items:center;gap:8px}
+.cat h3 .ic{width:20px;height:20px;color:var(--accent)}
+.item .rmx{display:grid;place-items:center;min-width:32px;min-height:32px}
+.item .rmx .ic{width:16px;height:16px}
+.movecard em .ic{width:16px;height:16px}
+details.free>summary{list-style:none}
+details.free>summary::-webkit-details-marker{display:none}
+details.free>summary .ic{width:18px;height:18px}
+.searchf{position:relative;display:block}
+.searchf>.ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--ink-soft);pointer-events:none}
+.searchf .field{padding-left:38px}
+/* Retour tactile : pression instantanée et discrète */
+.btn,.pill,.tab,.iconbtn,.card,.movecard,.actions button,.stepper button,.rate button,.stars button,.closerow{transition:transform 160ms var(--ease-out),background-color 160ms ease,color 160ms ease,border-color 160ms ease}
+.btn:active,.pill:active,.tab:active,.iconbtn:active,.movecard:active,.actions button:active,.closerow:active{transform:scale(.97)}
+.card:active{transform:scale(.985)}
+.stepper button:active,.rate button:active,.stars button:active{transform:scale(.88)}
+.btn:disabled:active,.stepper button:disabled:active{transform:none}
+.switch input,.switch input::after{transition:background-color 160ms ease,transform 200ms var(--ease-out)}
+/* Survol seulement avec une souris ou un trackpad (sinon l'état reste collé après un toucher) */
+@media (hover:hover) and (pointer:fine){
+  .tab:not([aria-selected="true"]):hover{color:var(--ink)}
+  .btn:hover{background:var(--paper-dark)}
+  .btn.primary:hover{background:var(--accent-dark);border-color:var(--accent-dark)}
+  .btn.dark:hover{background:#333;border-color:#333}
+  .card:hover,.movecard:hover{box-shadow:var(--shadow),0 0 0 1px var(--line)}
+  .pill:not([aria-pressed="true"]):hover{border-color:var(--accent)}
+}
+/* Feuilles : montent du bas sur iPhone, apparaissent sur place sur iPad; sortie plus rapide que l'entrée */
+.sheet-back{transition:opacity 260ms ease}
+.sheet{transition:transform 420ms var(--ease-drawer),opacity 260ms ease}
+@starting-style{
+  .sheet-back:not([hidden]){opacity:0}
+  .sheet-back:not([hidden]) .sheet{transform:translateY(100%)}
+}
+.sheet-back.closing{opacity:0;transition:opacity 180ms ease}
+.sheet-back.closing .sheet{transform:translateY(100%);transition:transform 180ms var(--ease-out)}
+.list,.movelist,.filters{overscroll-behavior:contain}
+@media (min-width:900px){
+  @starting-style{ .sheet-back:not([hidden]) .sheet{transform:scale(.96);opacity:0} }
+  .sheet{transition:transform 240ms var(--ease-out),opacity 200ms ease}
+  .sheet-back.closing .sheet{transform:scale(.97);opacity:0}
+}
+/* Mouvement réduit : on garde les fondus, on enlève les déplacements */
+@media (prefers-reduced-motion: reduce){
+  .btn,.pill,.tab,.iconbtn,.card,.movecard,.actions button,.stepper button,.rate button,.stars button,.closerow,.sheet{transition:opacity 200ms ease,background-color 160ms ease,color 160ms ease!important}
+  .btn:active,.pill:active,.tab:active,.iconbtn:active,.card:active,.movecard:active,.actions button:active,.stepper button:active,.rate button:active,.stars button:active,.closerow:active{transform:none}
+  @starting-style{ .sheet-back:not([hidden]) .sheet{transform:none} }
+  .sheet-back.closing .sheet{transform:none;opacity:0}
+}
+
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="stack" style="gap:12px">
-    <div class="apptitle"><h1>Menus de la semaine</h1><span class="savestate" id="saveState" aria-live="polite"></span></div>
-    <div class="head2">
-      <nav class="tabs" role="tablist" aria-label="Sections">
-        <button class="tab" role="tab" data-tab="menu" id="tab-menu">Menu</button>
-        <button class="tab" role="tab" data-tab="epicerie" id="tab-epicerie">Épicerie</button>
-        <button class="tab" role="tab" data-tab="ajouter" id="tab-ajouter">Ajouter</button>
-        <button class="tab" role="tab" data-tab="reglages" id="tab-reglages">Réglages</button>
+<header class="headband"><div class="headin">
+  <div class="apptitle"><h1>Menus de la semaine</h1><span class="savestate" id="saveState" aria-live="polite"></span></div>
+  <nav class="tabs" role="tablist" aria-label="Sections">
+        <button class="tab" role="tab" data-tab="menu" id="tab-menu"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-68-76a12,12,0,1,1-12-12A12,12,0,0,1,140,132Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,132ZM96,172a12,12,0,1,1-12-12A12,12,0,0,1,96,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,140,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,172Z"/></svg><span>Menu</span></button>
+        <button class="tab" role="tab" data-tab="epicerie" id="tab-epicerie"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M104,216a16,16,0,1,1-16-16A16,16,0,0,1,104,216Zm88-16a16,16,0,1,0,16,16A16,16,0,0,0,192,200ZM239.71,74.14l-25.64,92.28A24.06,24.06,0,0,1,191,184H92.16A24.06,24.06,0,0,1,69,166.42L33.92,40H16a8,8,0,0,1,0-16H40a8,8,0,0,1,7.71,5.86L57.19,64H232a8,8,0,0,1,7.71,10.14ZM221.47,80H61.64l22.81,82.14A8,8,0,0,0,92.16,168H191a8,8,0,0,0,7.71-5.86Z"/></svg><span>Épicerie</span></button>
+        <button class="tab" role="tab" data-tab="ajouter" id="tab-ajouter"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm48-88a8,8,0,0,1-8,8H136v32a8,8,0,0,1-16,0V136H88a8,8,0,0,1,0-16h32V88a8,8,0,0,1,16,0v32h32A8,8,0,0,1,176,128Z"/></svg><span>Ajouter</span></button>
+        <button class="tab" role="tab" data-tab="reglages" id="tab-reglages"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Zm109.94-52.79a8,8,0,0,0-3.89-5.4l-29.83-17-.12-33.62a8,8,0,0,0-2.83-6.08,111.91,111.91,0,0,0-36.72-20.67,8,8,0,0,0-6.46.59L128,41.85,97.88,25a8,8,0,0,0-6.47-.6A112.1,112.1,0,0,0,54.73,45.15a8,8,0,0,0-2.83,6.07l-.15,33.65-29.83,17a8,8,0,0,0-3.89,5.4,106.47,106.47,0,0,0,0,41.56,8,8,0,0,0,3.89,5.4l29.83,17,.12,33.62a8,8,0,0,0,2.83,6.08,111.91,111.91,0,0,0,36.72,20.67,8,8,0,0,0,6.46-.59L128,214.15,158.12,231a7.91,7.91,0,0,0,3.9,1,8.09,8.09,0,0,0,2.57-.42,112.1,112.1,0,0,0,36.68-20.73,8,8,0,0,0,2.83-6.07l.15-33.65,29.83-17a8,8,0,0,0,3.89-5.4A106.47,106.47,0,0,0,237.94,107.21Zm-15,34.91-28.57,16.25a8,8,0,0,0-3,3c-.58,1-1.19,2.06-1.81,3.06a7.94,7.94,0,0,0-1.22,4.21l-.15,32.25a95.89,95.89,0,0,1-25.37,14.3L134,199.13a8,8,0,0,0-3.91-1h-.19c-1.21,0-2.43,0-3.64,0a8.08,8.08,0,0,0-4.1,1l-28.84,16.1A96,96,0,0,1,67.88,201l-.11-32.2a8,8,0,0,0-1.22-4.22c-.62-1-1.23-2-1.8-3.06a8.09,8.09,0,0,0-3-3.06l-28.6-16.29a90.49,90.49,0,0,1,0-28.26L61.67,97.63a8,8,0,0,0,3-3c.58-1,1.19-2.06,1.81-3.06a7.94,7.94,0,0,0,1.22-4.21l.15-32.25a95.89,95.89,0,0,1,25.37-14.3L122,56.87a8,8,0,0,0,4.1,1c1.21,0,2.43,0,3.64,0a8.08,8.08,0,0,0,4.1-1l28.84-16.1A96,96,0,0,1,188.12,55l.11,32.2a8,8,0,0,0,1.22,4.22c.62,1,1.23,2,1.8,3.06a8.09,8.09,0,0,0,3,3.06l28.6,16.29A90.49,90.49,0,0,1,222.9,142.12Z"/></svg><span>Réglages</span></button>
       </nav>
-      <div class="weeknav" id="weeknav" style="margin-top:0">
-        <button class="iconbtn" id="prevWeek" aria-label="Semaine précédente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+</div></header>
+<div class="wrap">
+  <div class="weeknav" id="weeknav">
+        <button class="iconbtn" id="prevWeek" aria-label="Semaine précédente"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"/></svg></button>
         <h2 id="weekTitle"><small>Semaine du vendredi au jeudi</small>…</h2>
-        <button class="iconbtn" id="nextWeek" aria-label="Semaine suivante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+        <button class="iconbtn" id="nextWeek" aria-label="Semaine suivante"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg></button>
       </div>
-    </div>
-  </header>
 
   <div class="banner err" id="saveBanner" hidden></div>
   <div class="banner" id="atBanner" hidden></div>
@@ -242,18 +345,18 @@ details.free>summary{padding:8px 12px;font-weight:700;color:var(--accent);cursor
   <!-- ===== Onglet Menu ===== -->
   <section id="view-menu" class="stack" style="gap:14px">
     <div class="toolbar">
-      <button class="btn primary" id="proposeBtn">Propose-moi un menu</button>
-      <button class="btn" id="closeWeekBtn">Enregistrer les repas faits</button>
+      <button class="btn primary" id="proposeBtn"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M197.58,129.06,146,110l-19-51.62a15.92,15.92,0,0,0-29.88,0L78,110l-51.62,19a15.92,15.92,0,0,0,0,29.88L78,178l19,51.62a15.92,15.92,0,0,0,29.88,0L146,178l51.62-19a15.92,15.92,0,0,0,0-29.88ZM137,164.22a8,8,0,0,0-4.74,4.74L112,223.85,91.78,169A8,8,0,0,0,87,164.22L32.15,144,87,123.78A8,8,0,0,0,91.78,119L112,64.15,132.22,119a8,8,0,0,0,4.74,4.74L191.85,144ZM144,40a8,8,0,0,1,8-8h16V16a8,8,0,0,1,16,0V32h16a8,8,0,0,1,0,16H184V64a8,8,0,0,1-16,0V48H152A8,8,0,0,1,144,40ZM248,88a8,8,0,0,1-8,8h-8v8a8,8,0,0,1-16,0V96h-8a8,8,0,0,1,0-16h8V72a8,8,0,0,1,16,0v8h8A8,8,0,0,1,248,88Z"/></svg>Propose-moi un menu</button>
+      <button class="btn" id="closeWeekBtn"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"/></svg>Enregistrer les repas faits</button>
       <span class="small" id="closeInfo"></span>
       <button class="linkbtn" id="thisWeek" hidden>Revenir à la semaine en cours</button>
     </div>
     <section class="controls">
       <div class="people">
-        <label for="weekPeople">Personnes cette semaine<span class="hint">Valeur par défaut pour chaque souper</span></label>
+        <label for="weekPeople"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Zm210.14,98.7a8,8,0,0,1-11.07-2.33A79.83,79.83,0,0,0,172,168a8,8,0,0,1,0-16,44,44,0,1,0-16.34-84.87,8,8,0,1,1-5.94-14.85,60,60,0,0,1,55.53,105.64,95.83,95.83,0,0,1,47.22,37.71A8,8,0,0,1,250.14,206.7Z"/></svg> Personnes cette semaine<span class="hint">Valeur par défaut pour chaque souper</span></label>
         <div class="stepper" role="group" aria-label="Personnes cette semaine">
-          <button id="weekMinus" aria-label="Une personne de moins">−</button>
+          <button id="weekMinus" aria-label="Une personne de moins"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128Z"/></svg></button>
           <output id="weekPeople">4</output>
-          <button id="weekPlus" aria-label="Une personne de plus">+</button>
+          <button id="weekPlus" aria-label="Une personne de plus"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></svg></button>
         </div>
       </div>
       <div class="summary" id="summary"></div>
@@ -265,7 +368,7 @@ details.free>summary{padding:8px 12px;font-weight:700;color:var(--accent);cursor
   <!-- ===== Onglet Épicerie ===== -->
   <section id="view-epicerie" class="stack" style="gap:14px" hidden>
     <div class="toolbar">
-      <button class="btn dark" id="copyList">Copier la liste</button>
+      <button class="btn dark" id="copyList"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"/></svg>Copier la liste</button>
       <label class="switch" for="hideDone"><input type="checkbox" id="hideDone"> Masquer les articles cochés</label>
       <button class="linkbtn" id="uncheckAll">Tout décocher</button>
     </div>
@@ -276,7 +379,7 @@ details.free>summary{padding:8px 12px;font-weight:700;color:var(--accent);cursor
       <form class="addextra" id="extraForm">
         <input class="field" id="extraName" placeholder="Ex. lait, pain, café" autocomplete="off" aria-label="Article à ajouter">
         <select class="field" id="extraCat" aria-label="Catégorie"></select>
-        <button class="btn primary" type="submit">Ajouter</button>
+        <button class="btn primary" type="submit"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></svg>Ajouter</button>
       </form>
       <span class="small">Les repas hors Airtable (pizza, restes…) n’ont pas d’ingrédients : ajoute ici ce qu’il leur faut.</span>
     </div>
@@ -288,10 +391,10 @@ details.free>summary{padding:8px 12px;font-weight:700;color:var(--accent);cursor
       <h3>Ajouter des recettes dans Airtable</h3>
       <span class="small">Colle un ou plusieurs liens (un par ligne), puis indique pour chacun s’il a été essayé et sa note. Le titre, la durée, la protéine, le type, les portions et les ingrédients se complètent ensuite avec Claude.</span>
       <textarea class="field" id="pasteLinks" rows="3" placeholder="https://…&#10;https://…"></textarea>
-      <div class="toolbar"><button class="btn" id="makeRows">Créer les lignes</button><button class="linkbtn" id="addRow">+ Ajouter une ligne vide</button></div>
+      <div class="toolbar"><button class="btn" id="makeRows"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M240,88.23a54.43,54.43,0,0,1-16,37L189.25,160a54.27,54.27,0,0,1-38.63,16h-.05A54.63,54.63,0,0,1,96,119.84a8,8,0,0,1,16,.45A38.62,38.62,0,0,0,150.58,160h0a38.39,38.39,0,0,0,27.31-11.31l34.75-34.75a38.63,38.63,0,0,0-54.63-54.63l-11,11A8,8,0,0,1,135.7,59l11-11A54.65,54.65,0,0,1,224,48,54.86,54.86,0,0,1,240,88.23ZM109,185.66l-11,11A38.41,38.41,0,0,1,70.6,208h0a38.63,38.63,0,0,1-27.29-65.94L78,107.31A38.63,38.63,0,0,1,144,135.71a8,8,0,0,0,16,.45A54.86,54.86,0,0,0,144,96a54.65,54.65,0,0,0-77.27,0L32,130.75A54.62,54.62,0,0,0,70.56,224h0a54.28,54.28,0,0,0,38.64-16l11-11A8,8,0,0,0,109,185.66Z"/></svg>Créer les lignes</button><button class="linkbtn" id="addRow">+ Ajouter une ligne vide</button></div>
     </div>
     <div id="addRows" class="stack" style="gap:10px"></div>
-    <div class="toolbar"><button class="btn primary" id="sendRows">Envoyer vers Airtable</button><span class="small" id="sendInfo"></span></div>
+    <div class="toolbar"><button class="btn primary" id="sendRows"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M227.32,28.68a16,16,0,0,0-15.66-4.08l-.15,0L19.57,82.84a16,16,0,0,0-2.49,29.8L102,154l41.3,84.87A15.86,15.86,0,0,0,157.74,248q.69,0,1.38-.06a15.88,15.88,0,0,0,14-11.51l58.2-191.94c0-.05,0-.1,0-.15A16,16,0,0,0,227.32,28.68ZM157.83,231.85l-.05.14,0-.07-40.06-82.3,48-48a8,8,0,0,0-11.31-11.31l-48,48L24.08,98.25l-.07,0,.14,0L216,40Z"/></svg>Envoyer vers Airtable</button><span class="small" id="sendInfo"></span></div>
     <div class="panel" id="todoPanel">
       <h3>Recettes à compléter</h3>
       <div id="todoList"></div>
@@ -303,19 +406,19 @@ details.free>summary{padding:8px 12px;font-weight:700;color:var(--accent);cursor
     <div class="panel" id="tokenPanel" hidden>
       <h3>Connexion à Airtable</h3>
       <span class="small">Colle un jeton d’accès personnel Airtable avec les portées <b>data.records:read</b> et <b>data.records:write</b>, limité à la base Recettes_Repas. Il reste dans ce navigateur, sur cet appareil, et n’est envoyé qu’à api.airtable.com.</span>
-      <div class="toolbar"><input class="field" id="tokenInput" type="password" placeholder="pat…" autocomplete="off" style="flex:1;min-width:200px" aria-label="Jeton Airtable"><button class="btn primary" id="tokenSave">Enregistrer</button><button class="linkbtn" id="tokenForget">Oublier le jeton</button></div>
+      <div class="toolbar"><input class="field" id="tokenInput" type="password" placeholder="pat…" autocomplete="off" style="flex:1;min-width:200px" aria-label="Jeton Airtable"><button class="btn primary" id="tokenSave"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216.57,39.43A80,80,0,0,0,83.91,120.78L28.69,176A15.86,15.86,0,0,0,24,187.31V216a16,16,0,0,0,16,16H72a8,8,0,0,0,8-8V208H96a8,8,0,0,0,8-8V184h16a8,8,0,0,0,5.66-2.34l9.56-9.57A79.73,79.73,0,0,0,160,176h.1A80,80,0,0,0,216.57,39.43ZM224,98.1c-1.09,34.09-29.75,61.86-63.89,61.9H160a63.7,63.7,0,0,1-23.65-4.51,8,8,0,0,0-8.84,1.68L116.69,168H96a8,8,0,0,0-8,8v16H72a8,8,0,0,0-8,8v16H40V187.31l58.83-58.82a8,8,0,0,0,1.68-8.84A63.72,63.72,0,0,1,96,95.92c0-34.14,27.81-62.8,61.9-63.89A64,64,0,0,1,224,98.1ZM192,76a12,12,0,1,1-12-12A12,12,0,0,1,192,76Z"/></svg>Enregistrer</button><button class="linkbtn" id="tokenForget">Oublier le jeton</button></div>
       <span class="small" id="tokenState"></span>
     </div>
     <div class="panel">
       <h3>Recettes</h3>
       <span class="small" id="recipeState"></span>
-      <div class="toolbar"><button class="btn" id="updRecipes">Mettre à jour depuis Airtable</button></div>
+      <div class="toolbar"><button class="btn" id="updRecipes"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,48V96a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h28.69L182.06,73.37a79.56,79.56,0,0,0-56.13-23.43h-.45A79.52,79.52,0,0,0,69.59,72.71,8,8,0,0,1,58.41,61.27a96,96,0,0,1,135,.79L208,76.69V48a8,8,0,0,1,16,0ZM186.41,183.29a80,80,0,0,1-112.47-.66L59.31,168H88a8,8,0,0,0,0-16H40a8,8,0,0,0-8,8v48a8,8,0,0,0,16,0V179.31l14.63,14.63A95.43,95.43,0,0,0,130,222.06h.53a95.36,95.36,0,0,0,67.07-27.33,8,8,0,0,0-11.18-11.44Z"/></svg>Mettre à jour depuis Airtable</button></div>
       <span class="small">L’outil travaille avec sa copie des recettes. Airtable n’est lu que lorsque tu touches ce bouton (environ 1 appel par tranche de 100 recettes).</span>
     </div>
     <div class="panel">
       <h3>Sauvegarde des menus dans Airtable</h3>
       <span class="small" id="syncInfo"></span>
-      <div class="toolbar"><button class="btn" id="pushMenus">Envoyer mes menus vers Airtable</button><button class="btn" id="pullMenus">Récupérer depuis Airtable</button></div>
+      <div class="toolbar"><button class="btn" id="pushMenus"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M178.34,165.66,160,147.31V208a8,8,0,0,1-16,0V147.31l-18.34,18.35a8,8,0,0,1-11.32-11.32l32-32a8,8,0,0,1,11.32,0l32,32a8,8,0,0,1-11.32,11.32ZM160,40A88.08,88.08,0,0,0,81.29,88.68,64,64,0,1,0,72,216h40a8,8,0,0,0,0-16H72a48,48,0,0,1,0-96c1.1,0,2.2,0,3.29.12A88,88,0,0,0,72,128a8,8,0,0,0,16,0,72,72,0,1,1,100.8,66,8,8,0,0,0,3.2,15.34,7.9,7.9,0,0,0,3.2-.68A88,88,0,0,0,160,40Z"/></svg>Envoyer mes menus vers Airtable</button><button class="btn" id="pullMenus"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M248,128a87.34,87.34,0,0,1-17.6,52.81,8,8,0,1,1-12.8-9.62A71.34,71.34,0,0,0,232,128a72,72,0,0,0-144,0,8,8,0,0,1-16,0,88,88,0,0,1,3.29-23.88C74.2,104,73.1,104,72,104a48,48,0,0,0,0,96H96a8,8,0,0,1,0,16H72A64,64,0,1,1,81.29,88.68,88,88,0,0,1,248,128Zm-69.66,42.34L160,188.69V128a8,8,0,0,0-16,0v60.69l-18.34-18.35a8,8,0,0,0-11.32,11.32l32,32a8,8,0,0,0,11.32,0l32-32a8,8,0,0,0-11.32-11.32Z"/></svg>Récupérer depuis Airtable</button></div>
       <span class="small">Sert à passer d’une version à l’autre (Claude ↔ GitHub) ou d’un appareil à l’autre. Rien n’est envoyé automatiquement. Un envoi coûte environ 1 appel par tranche de 10 semaines.</span>
     </div>
     <div class="panel">
@@ -331,7 +434,7 @@ details.free>summary{padding:8px 12px;font-weight:700;color:var(--accent);cursor
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
     <header>
       <h3 id="sheetTitle">Choisir le souper</h3>
-      <button class="iconbtn" id="sheetClose" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <button class="iconbtn" id="sheetClose" aria-label="Fermer"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></svg></button>
     </header>
     <div class="filters" id="filters"></div>
     <div class="list" id="list"></div>
@@ -342,7 +445,7 @@ details.free>summary{padding:8px 12px;font-weight:700;color:var(--accent);cursor
   <div class="sheet small" role="dialog" aria-modal="true" aria-labelledby="moveTitle">
     <header>
       <h3 id="moveTitle">Déplacer</h3>
-      <button class="iconbtn" id="moveClose" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <button class="iconbtn" id="moveClose" aria-label="Fermer"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></svg></button>
     </header>
     <div class="movelist" id="moveList"></div>
   </div>
@@ -352,10 +455,10 @@ details.free>summary{padding:8px 12px;font-weight:700;color:var(--accent);cursor
   <div class="sheet small" role="dialog" aria-modal="true" aria-labelledby="closeTitle">
     <header>
       <h3 id="closeTitle">Enregistrer les repas faits<small id="closeSub"></small></h3>
-      <button class="iconbtn" id="closeClose" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <button class="iconbtn" id="closeClose" aria-label="Fermer"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></svg></button>
     </header>
     <div class="movelist" id="closeList"></div>
-    <div class="toolbar" style="padding:12px 16px calc(16px + env(safe-area-inset-bottom));border-top:1px solid var(--stroke)"><button class="btn primary" id="closeSend">Envoyer dans Airtable</button><button class="linkbtn" id="closeCancel">Annuler</button></div>
+    <div class="toolbar" style="padding:12px 16px calc(16px + env(safe-area-inset-bottom));border-top:1px solid var(--stroke)"><button class="btn primary" id="closeSend"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M227.32,28.68a16,16,0,0,0-15.66-4.08l-.15,0L19.57,82.84a16,16,0,0,0-2.49,29.8L102,154l41.3,84.87A15.86,15.86,0,0,0,157.74,248q.69,0,1.38-.06a15.88,15.88,0,0,0,14-11.51l58.2-191.94c0-.05,0-.1,0-.15A16,16,0,0,0,227.32,28.68ZM157.83,231.85l-.05.14,0-.07-40.06-82.3,48-48a8,8,0,0,0-11.31-11.31l-48,48L24.08,98.25l-.07,0,.14,0L216,40Z"/></svg>Envoyer dans Airtable</button><button class="linkbtn" id="closeCancel">Annuler</button></div>
   </div>
 </div>
 
@@ -363,7 +466,7 @@ details.free>summary{padding:8px 12px;font-weight:700;color:var(--accent);cursor
   <div class="sheet small" role="dialog" aria-modal="true" aria-labelledby="copyTitle">
     <header>
       <h3 id="copyTitle">Texte à copier</h3>
-      <button class="iconbtn" id="copyClose" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <button class="iconbtn" id="copyClose" aria-label="Fermer"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></svg></button>
     </header>
     <div class="movelist"><span class="small" id="copyHint"></span><textarea class="field copybox" id="copyText" readonly></textarea></div>
   </div>
@@ -407,6 +510,7 @@ const DUREES = [
   {k:"45-60", label:"45 à 60 min", test:s=>s>2700&&s<=3600},
   {k:"gt60", label:"Plus d’une heure", test:s=>s>3600}
 ];
+const CAT_IC = {"Fruits et légumes":'<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M232,64H203.31l26.35-26.34a8,8,0,0,0-11.32-11.32L192,52.69V24a8,8,0,0,0-16,0V56.57a64,64,0,0,0-77.2,10.12l0,0,0,0,0,0c-40.1,39.39-70.25,133.08-73.19,142.45a16,16,0,0,0,21.26,21.26c9.37-2.94,103.18-33.13,142.47-73.21A64,64,0,0,0,199.43,80H232a8,8,0,0,0,0-16Zm-54.12,82c-8.94,9.12-21.25,17.8-34.85,25.73l-25.38-25.39a8,8,0,0,0-11.32,11.32l22.09,22.09c-40.87,21.19-86.32,35.42-87,35.63A7.93,7.93,0,0,0,40,216a7.93,7.93,0,0,0,.59-1.41c.29-.93,28-89.58,64-130.67l33.77,33.77a8,8,0,0,0,11.32-11.32L116.18,72.88A48,48,0,0,1,177.88,146Z"/></svg>',"Viandes et poissons":'<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M168,76a12,12,0,1,1-12-12A12,12,0,0,1,168,76Zm48.72,67.64c-19.37,34.9-55.44,53.76-107.24,56.1l-22,51.41A8,8,0,0,1,80.1,256l-.51,0a8,8,0,0,1-7.19-5.78L57.6,198.39,5.8,183.56a8,8,0,0,1-1-15.05l51.41-22c2.35-51.78,21.21-87.84,56.09-107.22,24.75-13.74,52.74-15.84,71.88-15.18,18.64.64,36,4.27,38.86,6a8,8,0,0,1,2.83,2.83c1.69,2.85,5.33,20.21,6,38.85C232.55,90.89,230.46,118.89,216.72,143.64Zm-55.18,29a52.11,52.11,0,0,1-33.4-44.78A52.09,52.09,0,0,1,83.37,94.47q-10.45,23.79-11.3,57.59a8,8,0,0,1-4.85,7.17L31.83,174.37l34.45,9.86a8,8,0,0,1,5.49,5.5l9.84,34.44,15.16-35.4a8,8,0,0,1,7.17-4.84Q137.71,183.12,161.54,172.64ZM212.42,43.57c-14.15-3-64.1-11-100.3,14.75a81.21,81.21,0,0,0-16,15.07,36,36,0,0,0,39.35,38.44,8,8,0,0,1,8.73,8.73,36,36,0,0,0,38.47,39.34,80.81,80.81,0,0,0,15-16C223.42,107.73,215.42,57.74,212.42,43.57Z"/></svg>',"Produits laitiers et œufs":'<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M184,32a7.81,7.81,0,0,0-2.3.34l-160,48h0A8,8,0,0,0,16,88v24a8,8,0,0,0,8,8h8a16.08,16.08,0,0,1,16,15.69A15.6,15.6,0,0,1,43.42,147a16.87,16.87,0,0,1-12,5.05H24a8,8,0,0,0-8,8v32a8,8,0,0,0,8,8H224a16,16,0,0,0,16-16V88A56.06,56.06,0,0,0,184,32Zm1.12,16a40.06,40.06,0,0,1,38.07,32H78.51ZM192,104a24,24,0,1,1-46.62-8h45.24A23.86,23.86,0,0,1,192,104ZM88,184a24,24,0,0,1,48,0Zm136,0H152a40,40,0,0,0-80,0H32V168a33,33,0,0,0,22.84-9.85A31.39,31.39,0,0,0,64,135.38,32.15,32.15,0,0,0,32,104V96h96.81a40,40,0,1,0,78.38,0H224Z"/></svg>',"Boulangerie":'<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M240,80a40,40,0,0,0-40-40H48a40,40,0,0,0-16,76.65V200a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V116.65A40.06,40.06,0,0,0,240,80ZM48,120a8,8,0,0,0,0-16,24,24,0,0,1,0-48h96a24,24,0,0,1,0,48,8,8,0,0,0,0,16v80H48Zm152-16a8,8,0,0,0,0,16v80H160V116.65A40,40,0,0,0,176,56h24a24,24,0,0,1,0,48Z"/></svg>',"Épicerie":'<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M136,120v56a8,8,0,0,1-16,0V120a8,8,0,0,1,16,0Zm36.84-.8-5.6,56A8,8,0,0,0,174.4,184a7.32,7.32,0,0,0,.81,0,8,8,0,0,0,7.95-7.2l5.6-56a8,8,0,0,0-15.92-1.6Zm-89.68,0a8,8,0,0,0-15.92,1.6l5.6,56a8,8,0,0,0,8,7.2,7.32,7.32,0,0,0,.81,0,8,8,0,0,0,7.16-8.76ZM239.93,89.06,224.86,202.12A16.06,16.06,0,0,1,209,216H47a16.06,16.06,0,0,1-15.86-13.88L16.07,89.06A8,8,0,0,1,24,80H68.37L122,18.73a8,8,0,0,1,12,0L187.63,80H232a8,8,0,0,1,7.93,9.06ZM89.63,80h76.74L128,36.15ZM222.86,96H33.14L47,200H209Z"/></svg>',"Condiments et sauces":'<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M184,48.81V32a16,16,0,0,0-16-16H88A16,16,0,0,0,72,32V48.81A40.05,40.05,0,0,0,40,88V200a40,40,0,0,0,40,40h96a40,40,0,0,0,40-40V88A40.05,40.05,0,0,0,184,48.81ZM56,112H200v64H56ZM168,48H152V32h16Zm-48,0V32h16V48ZM104,32V48H88V32ZM80,64h96a24,24,0,0,1,24,24v8H56V88A24,24,0,0,1,80,64Zm96,160H80a24,24,0,0,1-24-24v-8H200v8A24,24,0,0,1,176,224Z"/></svg>',"Épices":'<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M167.27,40.42A40.06,40.06,0,0,0,128,8a8,8,0,0,0,0,16,24,24,0,0,1,22.85,16.66A64.08,64.08,0,0,0,96,104c0,46.75-25.75,78-76.53,93a16,16,0,0,0,1.77,31.13A264.8,264.8,0,0,0,66.75,232c40.78,0,86.16-9.15,117.53-35.46C210.64,174.44,224,143.3,224,104h0A64.07,64.07,0,0,0,167.27,40.42ZM160,56a48.07,48.07,0,0,1,45.37,32.37L192,95,163.58,80.83a8,8,0,0,0-7.16,0L128,95l-13.37-6.68A48.08,48.08,0,0,1,160,56Zm14,128.3c-18,15.07-43.6,25.26-74.12,29.47A254.08,254.08,0,0,1,24,212.37h0v0c57.23-16.87,87.63-54,88-107.42l12.44,6.22a8,8,0,0,0,7.16,0L160,96.93l28.42,14.21a8,8,0,0,0,7.16,0l12.41-6.2C207.78,138.84,196.35,165.54,174,184.29Z"/></svg>',"Surgelés":'<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M223.77,150.09a8,8,0,0,1-5.86,9.68l-24.64,6,6.46,24.11a8,8,0,0,1-5.66,9.8A8.25,8.25,0,0,1,192,200a8,8,0,0,1-7.72-5.93l-7.72-28.8L136,141.86v46.83l21.66,21.65a8,8,0,0,1-11.32,11.32L128,203.31l-18.34,18.35a8,8,0,0,1-11.32-11.32L120,188.69V141.86L79.45,165.27l-7.72,28.8A8,8,0,0,1,64,200a8.25,8.25,0,0,1-2.08-.27,8,8,0,0,1-5.66-9.8l6.46-24.11-24.64-6a8,8,0,0,1,3.82-15.54l29.45,7.23L112,128,71.36,104.54l-29.45,7.23A7.85,7.85,0,0,1,40,112a8,8,0,0,1-1.91-15.77l24.64-6L56.27,66.07a8,8,0,0,1,15.46-4.14l7.72,28.8L120,114.14V67.31L98.34,45.66a8,8,0,0,1,11.32-11.32L128,52.69l18.34-18.35a8,8,0,0,1,11.32,11.32L136,67.31v46.83l40.55-23.41,7.72-28.8a8,8,0,0,1,15.46,4.14l-6.46,24.11,24.64,6A8,8,0,0,1,216,112a7.85,7.85,0,0,1-1.91-.23l-29.45-7.23L144,128l40.64,23.46,29.45-7.23A8,8,0,0,1,223.77,150.09Z"/></svg>',"Autres":'<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M223.68,66.15,135.68,18a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,32l80.34,44-29.77,16.3-80.35-44ZM128,120,47.66,76l33.9-18.56,80.34,44ZM40,90l80,43.78v85.79L40,175.82Zm176,85.78h0l-80,43.79V133.82l32-17.51V152a8,8,0,0,0,16,0V107.55L216,90v85.77Z"/></svg>'};
 const CATS = ["Fruits et légumes","Viandes et poissons","Produits laitiers et œufs","Boulangerie","Épicerie","Condiments et sauces","Épices","Surgelés","Autres"];
 const DEFAULT_PEOPLE = 4;
 const JOURS = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
@@ -434,7 +538,7 @@ function fmtDuree(sec){
   const h=Math.floor(m/60), r=m%60;
   return h+" h"+(r?" "+pad(r):"");
 }
-function starsRO(n){ n=Math.max(0,Math.min(5,n||0)); return '<span class="starsro" aria-label="'+n+' sur 5">'+"★".repeat(n)+'<span class="off">'+"★".repeat(5-n)+"</span></span>"; }
+function starsRO(n){ n=Math.max(0,Math.min(5,n||0)); return '<span class="starsro" aria-label="'+n+' sur 5">'+'<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M234.29,114.85l-45,38.83L203,211.75a16.4,16.4,0,0,1-24.5,17.82L128,198.49,77.47,229.57A16.4,16.4,0,0,1,53,211.75l13.76-58.07-45-38.83A16.46,16.46,0,0,1,31.08,86l59-4.76,22.76-55.08a16.36,16.36,0,0,1,30.27,0l22.75,55.08,59,4.76a16.46,16.46,0,0,1,9.37,28.86Z"/></svg>'.repeat(n)+'<span class="off">'+'<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M234.29,114.85l-45,38.83L203,211.75a16.4,16.4,0,0,1-24.5,17.82L128,198.49,77.47,229.57A16.4,16.4,0,0,1,53,211.75l13.76-58.07-45-38.83A16.46,16.46,0,0,1,31.08,86l59-4.76,22.76-55.08a16.36,16.36,0,0,1,30.27,0l22.75,55.08,59,4.76a16.46,16.46,0,0,1,9.37,28.86Z"/></svg>'.repeat(5-n)+"</span></span>"; }
 function stClass(s){ return s==="Essayé"?"essaye":s==="À essayer"?"aessayer":s==="À ne plus faire"?"nonplus":""; }
 const selName = v => v==null?null:(typeof v==="object"?(v.name??null):String(v));
 const dayLabel = k => { const d=parseIso(k); return JOURS[d.getDay()]+" "+d.getDate()+" "+MOIS[d.getMonth()]; };
@@ -930,9 +1034,9 @@ function renderMenu(){
   let planned=0, proposed=0, lunchs=0, secs=0, unknown=0;
   for(const k in week.jours){ const j=week.jours[k]; if(j.recette){ planned++; if(j.recette.propose) proposed++; if(j.recette.dureeSec!=null) secs+=j.recette.dureeSec; else unknown++; } if(j.lunchs) lunchs+=j.nbLunchs; }
   $("summary").innerHTML=
-    '<div class="tile"><b>'+planned+' / 7</b><span>soupers'+(proposed?", "+proposed+" proposé"+(proposed>1?"s":""):"")+'</span></div>'+
-    '<div class="tile"><b>'+lunchs+'</b><span>lunchs</span></div>'+
-    '<div class="tile"><b>'+(secs?fmtDuree(secs):"—")+'</b><span>en cuisine'+(unknown?" (+"+unknown+" ?)":"")+'</span></div>';
+    '<div class="tile"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M72,88V40a8,8,0,0,1,16,0V88a8,8,0,0,1-16,0ZM216,40V224a8,8,0,0,1-16,0V176H152a8,8,0,0,1-8-8,268.75,268.75,0,0,1,7.22-56.88c9.78-40.49,28.32-67.63,53.63-78.47A8,8,0,0,1,216,40ZM200,53.9c-32.17,24.57-38.47,84.42-39.7,106.1H200ZM119.89,38.69a8,8,0,1,0-15.78,2.63L112,88.63a32,32,0,0,1-64,0l7.88-47.31a8,8,0,1,0-15.78-2.63l-8,48A8.17,8.17,0,0,0,32,88a48.07,48.07,0,0,0,40,47.32V224a8,8,0,0,0,16,0V135.32A48.07,48.07,0,0,0,128,88a8.17,8.17,0,0,0-.11-1.31Z"/></svg><b>'+planned+' / 7</b><span>soupers'+(proposed?", "+proposed+" proposé"+(proposed>1?"s":""):"")+'</span></div>'+
+    '<div class="tile"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M168,40.58V32A24,24,0,0,0,144,8H112A24,24,0,0,0,88,32v8.58A56.09,56.09,0,0,0,40,96V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V96A56.09,56.09,0,0,0,168,40.58ZM112,24h32a8,8,0,0,1,8,8v8H104V32A8,8,0,0,1,112,24Zm56,136H88v-8a8,8,0,0,1,8-8h64a8,8,0,0,1,8,8ZM88,176h48v8a8,8,0,0,0,16,0v-8h16v40H88Zm112,40H184V152a24,24,0,0,0-24-24H96a24,24,0,0,0-24,24v64H56V96A40,40,0,0,1,96,56h64a40,40,0,0,1,40,40V216ZM152,88a8,8,0,0,1-8,8H112a8,8,0,0,1,0-16h32A8,8,0,0,1,152,88Z"/></svg><b>'+lunchs+'</b><span>lunchs</span></div>'+
+    '<div class="tile"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M88,48V16a8,8,0,0,1,16,0V48a8,8,0,0,1-16,0Zm40,8a8,8,0,0,0,8-8V16a8,8,0,0,0-16,0V48A8,8,0,0,0,128,56Zm32,0a8,8,0,0,0,8-8V16a8,8,0,0,0-16,0V48A8,8,0,0,0,160,56Zm92.8,46.4L224,124v60a32,32,0,0,1-32,32H64a32,32,0,0,1-32-32V124L3.2,102.4a8,8,0,0,1,9.6-12.8L32,104V80a8,8,0,0,1,8-8H216a8,8,0,0,1,8,8v24l19.2-14.4a8,8,0,0,1,9.6,12.8ZM208,88H48v96a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16Z"/></svg><b>'+(secs?fmtDuree(secs):"—")+'</b><span>en cuisine'+(unknown?" (+"+unknown+" ?)":"")+'</span></div>';
   const s=parseIso(weekStart), out=[];
   for(let i=0;i<7;i++){
     const d=addDays(s,i), k=iso(d), j=week.jours[k], ppl=dayPeople(k), isOv=j.personnes!=null, quick=isQuick(k);
@@ -944,20 +1048,20 @@ function renderMenu(){
       if(r.portions){ const f=need/r.portions; por='<div class="portions">Recette pour <b>'+r.portions+'</b>, besoin de <b>'+need+'</b> portion'+(need>1?"s":"")+(Math.abs(f-1)>0.001?', <span class="scale">× '+nf.format(f)+'</span>':', quantité juste')+'</div>'; }
       else if(r.libre) por='<div class="portions">Prévoir <b>'+need+'</b> portion'+(need>1?"s":"")+'</div>';
       const acts=r.propose
-        ? '<button class="keep" data-act="keep" data-day="'+k+'">Garder</button><button data-act="other" data-day="'+k+'">Autre suggestion</button><button data-act="pick" data-day="'+k+'">Choisir</button><button data-act="move" data-day="'+k+'">Déplacer</button><button class="rm" data-act="clear" data-day="'+k+'">Retirer</button>'
-        : '<button data-act="pick" data-day="'+k+'">Changer</button><button data-act="move" data-day="'+k+'">Déplacer</button><button class="rm" data-act="clear" data-day="'+k+'">Retirer</button>';
+        ? '<button class="keep" data-act="keep" data-day="'+k+'"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"/></svg>Garder</button><button data-act="other" data-day="'+k+'"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M237.66,178.34a8,8,0,0,1,0,11.32l-24,24a8,8,0,0,1-11.32-11.32L212.69,192H200.94a72.12,72.12,0,0,1-58.59-30.15l-41.72-58.4A56.1,56.1,0,0,0,55.06,80H32a8,8,0,0,1,0-16H55.06a72.12,72.12,0,0,1,58.59,30.15l41.72,58.4A56.1,56.1,0,0,0,200.94,176h11.75l-10.35-10.34a8,8,0,0,1,11.32-11.32ZM143,107a8,8,0,0,0,11.16-1.86l1.2-1.67A56.1,56.1,0,0,1,200.94,80h11.75L202.34,90.34a8,8,0,0,0,11.32,11.32l24-24a8,8,0,0,0,0-11.32l-24-24a8,8,0,0,0-11.32,11.32L212.69,64H200.94a72.12,72.12,0,0,0-58.59,30.15l-1.2,1.67A8,8,0,0,0,143,107Zm-30,42a8,8,0,0,0-11.16,1.86l-1.2,1.67A56.1,56.1,0,0,1,55.06,176H32a8,8,0,0,0,0,16H55.06a72.12,72.12,0,0,0,58.59-30.15l1.2-1.67A8,8,0,0,0,113,149Z"/></svg>Autre suggestion</button><button data-act="pick" data-day="'+k+'"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg>Choisir</button><button data-act="move" data-day="'+k+'"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M117.66,170.34a8,8,0,0,1,0,11.32l-32,32a8,8,0,0,1-11.32,0l-32-32a8,8,0,0,1,11.32-11.32L72,188.69V48a8,8,0,0,1,16,0V188.69l18.34-18.35A8,8,0,0,1,117.66,170.34Zm96-96-32-32a8,8,0,0,0-11.32,0l-32,32a8,8,0,0,0,11.32,11.32L168,67.31V208a8,8,0,0,0,16,0V67.31l18.34,18.35a8,8,0,0,0,11.32-11.32Z"/></svg>Déplacer</button><button class="rm" data-act="clear" data-day="'+k+'"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></svg>Retirer</button>'
+        : '<button data-act="pick" data-day="'+k+'"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg>Changer</button><button data-act="move" data-day="'+k+'"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M117.66,170.34a8,8,0,0,1,0,11.32l-32,32a8,8,0,0,1-11.32,0l-32-32a8,8,0,0,1,11.32-11.32L72,188.69V48a8,8,0,0,1,16,0V188.69l18.34-18.35A8,8,0,0,1,117.66,170.34Zm96-96-32-32a8,8,0,0,0-11.32,0l-32,32a8,8,0,0,0,11.32,11.32L168,67.31V208a8,8,0,0,0,16,0V67.31l18.34,18.35a8,8,0,0,0,11.32-11.32Z"/></svg>Déplacer</button><button class="rm" data-act="clear" data-day="'+k+'"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></svg>Retirer</button>';
       rec='<div class="recipe filled'+(r.propose?" prop":"")+'"><div><div class="name">'+esc(r.nom)+'</div><div class="meta">'+
-          '<span class="'+(tooLong?"over":"time")+'">'+(t?"⏱ "+t:"Durée non indiquée")+(tooLong?" (plus de "+settings.rapidesMaxMin+" min)":"")+'</span>'+
-          (r.libre?'<span class="tag ink">Hors Airtable</span>':"")+(r.lien?'<a href="'+esc(r.lien)+'" target="_blank" rel="noopener">Voir la recette</a>':"")+'</div>'+rateHtml(k,r)+'</div>'+
+          '<span class="'+(tooLong?"over":"time")+'">'+(t?'<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"/></svg>'+t:"Durée non indiquée")+(tooLong?" (plus de "+settings.rapidesMaxMin+" min)":"")+'</span>'+
+          (r.libre?'<span class="tag ink">Hors Airtable</span>':"")+(r.lien?'<a href="'+esc(r.lien)+'" target="_blank" rel="noopener">Voir la recette<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,104a8,8,0,0,1-16,0V59.32l-66.33,66.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"/></svg></a>':"")+'</div>'+rateHtml(k,r)+'</div>'+
           '<div class="actions">'+acts+'</div></div>'+por;
-    }else rec='<div class="recipe empty"><button class="btn primary" data-act="pick" data-day="'+k+'">Choisir une recette</button>'+(missing[k]?'<span class="why">'+esc(missing[k])+'</span>':"")+'</div>';
-    const tags=(quick?'<span class="tag">Soir rapide</span>':"")+(j.recette&&j.recette.propose?'<span class="tag warn">Proposé</span>':"")+(k===todayIso?'<span class="tag">Aujourd’hui</span>':"");
+    }else rec='<div class="recipe empty"><button class="btn primary" data-act="pick" data-day="'+k+'"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></svg>Choisir une recette</button>'+(missing[k]?'<span class="why">'+esc(missing[k])+'</span>':"")+'</div>';
+    const tags=(quick?'<span class="tag"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M215.79,118.17a8,8,0,0,0-5-5.66L153.18,90.9l14.66-73.33a8,8,0,0,0-13.69-7l-112,120a8,8,0,0,0,3,13l57.63,21.61L88.16,238.43a8,8,0,0,0,13.69,7l112-120A8,8,0,0,0,215.79,118.17ZM109.37,214l10.47-52.38a8,8,0,0,0-5-9.06L62,132.71l84.62-90.66L136.16,94.43a8,8,0,0,0,5,9.06l52.8,19.8Z"/></svg>Soir rapide</span>':"")+(j.recette&&j.recette.propose?'<span class="tag warn"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M197.58,129.06,146,110l-19-51.62a15.92,15.92,0,0,0-29.88,0L78,110l-51.62,19a15.92,15.92,0,0,0,0,29.88L78,178l19,51.62a15.92,15.92,0,0,0,29.88,0L146,178l51.62-19a15.92,15.92,0,0,0,0-29.88ZM137,164.22a8,8,0,0,0-4.74,4.74L112,223.85,91.78,169A8,8,0,0,0,87,164.22L32.15,144,87,123.78A8,8,0,0,0,91.78,119L112,64.15,132.22,119a8,8,0,0,0,4.74,4.74L191.85,144ZM144,40a8,8,0,0,1,8-8h16V16a8,8,0,0,1,16,0V32h16a8,8,0,0,1,0,16H184V64a8,8,0,0,1-16,0V48H152A8,8,0,0,1,144,40ZM248,88a8,8,0,0,1-8,8h-8v8a8,8,0,0,1-16,0V96h-8a8,8,0,0,1,0-16h8V72a8,8,0,0,1,16,0v8h8A8,8,0,0,1,248,88Z"/></svg>Proposé</span>':"")+(k===todayIso?'<span class="tag">Aujourd’hui</span>':"");
     out.push('<article class="day'+(j.recette?(j.recette.propose?" proposed":" planned"):"")+(k===todayIso?" today":"")+'" aria-label="'+dayLabel(k)+'">'+
       '<div class="dayhead"><h3>'+JOURS[d.getDay()]+'<span class="date">'+d.getDate()+" "+MOIS[d.getMonth()]+'</span></h3><span class="tags">'+tags+'</span></div>'+
-      '<div class="row"><span class="lbl">Personnes au souper'+(isOv?' <span class="override">(ajusté)</span> <button class="resetbtn" data-act="reset" data-day="'+k+'">remettre '+week.personnes+'</button>':"")+'</span>'+
-        '<div class="stepper" role="group" aria-label="Personnes le '+dayLabel(k)+'"><button data-act="pminus" data-day="'+k+'" aria-label="Une personne de moins"'+(ppl<=1?" disabled":"")+'>−</button><output>'+ppl+'</output><button data-act="pplus" data-day="'+k+'" aria-label="Une personne de plus">+</button></div></div>'+
-      '<div class="row"><label class="switch" for="l-'+k+'"><input type="checkbox" id="l-'+k+'" data-act="lunch" data-day="'+k+'"'+(j.lunchs?" checked":"")+'> Lunchs pour le lendemain</label>'+
-        (j.lunchs?'<div class="stepper" role="group" aria-label="Nombre de lunchs"><button data-act="lminus" data-day="'+k+'" aria-label="Un lunch de moins"'+(j.nbLunchs<=1?" disabled":"")+'>−</button><output>'+j.nbLunchs+'</output><button data-act="lplus" data-day="'+k+'" aria-label="Un lunch de plus">+</button></div>':"")+'</div>'+
+      '<div class="row"><span class="lbl"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Zm210.14,98.7a8,8,0,0,1-11.07-2.33A79.83,79.83,0,0,0,172,168a8,8,0,0,1,0-16,44,44,0,1,0-16.34-84.87,8,8,0,1,1-5.94-14.85,60,60,0,0,1,55.53,105.64,95.83,95.83,0,0,1,47.22,37.71A8,8,0,0,1,250.14,206.7Z"/></svg>Personnes au souper'+(isOv?' <span class="override">(ajusté)</span> <button class="resetbtn" data-act="reset" data-day="'+k+'">remettre '+week.personnes+'</button>':"")+'</span>'+
+        '<div class="stepper" role="group" aria-label="Personnes le '+dayLabel(k)+'"><button data-act="pminus" data-day="'+k+'" aria-label="Une personne de moins"'+(ppl<=1?" disabled":"")+'><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128Z"/></svg></button><output>'+ppl+'</output><button data-act="pplus" data-day="'+k+'" aria-label="Une personne de plus"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></svg></button></div></div>'+
+      '<div class="row"><label class="switch" for="l-'+k+'"><input type="checkbox" id="l-'+k+'" data-act="lunch" data-day="'+k+'"'+(j.lunchs?" checked":"")+'> <svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M168,40.58V32A24,24,0,0,0,144,8H112A24,24,0,0,0,88,32v8.58A56.09,56.09,0,0,0,40,96V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V96A56.09,56.09,0,0,0,168,40.58ZM112,24h32a8,8,0,0,1,8,8v8H104V32A8,8,0,0,1,112,24Zm56,136H88v-8a8,8,0,0,1,8-8h64a8,8,0,0,1,8,8ZM88,176h48v8a8,8,0,0,0,16,0v-8h16v40H88Zm112,40H184V152a24,24,0,0,0-24-24H96a24,24,0,0,0-24,24v64H56V96A40,40,0,0,1,96,56h64a40,40,0,0,1,40,40V216ZM152,88a8,8,0,0,1-8,8H112a8,8,0,0,1,0-16h32A8,8,0,0,1,152,88Z"/></svg>Lunchs pour le lendemain</label>'+
+        (j.lunchs?'<div class="stepper" role="group" aria-label="Nombre de lunchs"><button data-act="lminus" data-day="'+k+'" aria-label="Un lunch de moins"'+(j.nbLunchs<=1?" disabled":"")+'><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128Z"/></svg></button><output>'+j.nbLunchs+'</output><button data-act="lplus" data-day="'+k+'" aria-label="Un lunch de plus"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></svg></button></div>':"")+'</div>'+
       rec+'<textarea class="comment" id="c-'+k+'" data-day="'+k+'" rows="1" placeholder="Note (ex. avec du couscous, dégeler la viande la veille)">'+esc(j.commentaire)+'</textarea></article>');
   }
   $("days").innerHTML=out.join("");
@@ -967,8 +1071,8 @@ function noteOf(id){ const src=recipes.find(x=>x.id===id); return src?src.note||
 function rateHtml(k,r){
   if(r.libre||!r.id) return "";
   const old=noteOf(r.id), cur=week.notes[r.id]??old;
-  return '<div class="rate" role="group" aria-label="Note de la recette">'+[1,2,3,4,5].map(n=>'<button data-act="rate" data-day="'+k+'" data-n="'+n+'" class="'+(cur>=n?"on":"")+'" aria-label="'+n+' sur 5" aria-pressed="'+(cur===n)+'">★</button>').join("")+
-    (week.notes[r.id]!=null?'<span class="was">avant : '+(old||"aucune")+(old?" ★":"")+', à envoyer</span>':"")+'</div>';
+  return '<div class="rate" role="group" aria-label="Note de la recette">'+[1,2,3,4,5].map(n=>'<button data-act="rate" data-day="'+k+'" data-n="'+n+'" class="'+(cur>=n?"on":"")+'" aria-label="'+n+' sur 5" aria-pressed="'+(cur===n)+'"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M234.29,114.85l-45,38.83L203,211.75a16.4,16.4,0,0,1-24.5,17.82L128,198.49,77.47,229.57A16.4,16.4,0,0,1,53,211.75l13.76-58.07-45-38.83A16.46,16.46,0,0,1,31.08,86l59-4.76,22.76-55.08a16.36,16.36,0,0,1,30.27,0l22.75,55.08,59,4.76a16.46,16.46,0,0,1,9.37,28.86Z"/></svg></button>').join("")+
+    (week.notes[r.id]!=null?'<span class="was">avant : '+(old||"aucune")+(old?" étoile"+(old>1?"s":""):"")+', à envoyer</span>':"")+'</div>';
 }
 function autoGrow(t){ t.style.height="auto"; t.style.height=Math.max(40,t.scrollHeight+2)+"px"; }
 
@@ -1008,7 +1112,7 @@ function openMove(k){
   $("moveTitle").innerHTML="Déplacer vers…<small>"+esc(r?r.nom:"")+", actuellement "+dayLabel(k)+"</small>";
   const s=parseIso(weekStart), rows=[];
   for(let i=0;i<7;i++){ const t=iso(addDays(s,i)); if(t===k) continue; const tr=week.jours[t].recette;
-    rows.push('<button class="movecard" data-to="'+t+'"><span style="min-width:0"><b>'+dayLabel(t)+'</b><span>'+(tr?esc(tr.nom):"Aucun repas")+'</span></span><em>'+(tr?"Échanger":"Déplacer ici")+'</em></button>'); }
+    rows.push('<button class="movecard" data-to="'+t+'"><span style="min-width:0"><b>'+dayLabel(t)+'</b><span>'+(tr?esc(tr.nom):"Aucun repas")+'</span></span><em>'+(tr?"Échanger":"Déplacer ici")+'<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></svg></em></button>'); }
   $("moveList").innerHTML='<p class="small" style="margin:0">Le repas et sa note changent de soir. Le nombre de personnes et les lunchs restent attachés au soir.</p>'+rows.join("");
   openModal("moveBack","moveClose");
 }
@@ -1067,7 +1171,7 @@ $("closeList").addEventListener("change",e=>{ const t=e.target; if(t.dataset.i==
 $("closeSend").onclick=async()=>{
   const todo=closeRows.filter(g=>(g.compter&&g.jours.length)||g.newNote!=null);
   if(!todo.length){ showAt("Rien à envoyer : coche au moins une recette ou change une note.","err"); return; }
-  $("closeSend").disabled=true; $("closeSend").textContent="Envoi…";
+  $("closeSend").disabled=true; $("closeSend").innerHTML='<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M227.32,28.68a16,16,0,0,0-15.66-4.08l-.15,0L19.57,82.84a16,16,0,0,0-2.49,29.8L102,154l41.3,84.87A15.86,15.86,0,0,0,157.74,248q.69,0,1.38-.06a15.88,15.88,0,0,0,14-11.51l58.2-191.94c0-.05,0-.1,0-.15A16,16,0,0,0,227.32,28.68ZM157.83,231.85l-.05.14,0-.07-40.06-82.3,48-48a8,8,0,0,0-11.31-11.31l-48,48L24.08,98.25l-.07,0,.14,0L216,40Z"/></svg>Envoi…';
   try{
     const fresh={}; (await AT.getRecipesByIds(todo.map(g=>g.id))).forEach(r=>fresh[r.id]=r.cells);
     const records=[], counted=[];
@@ -1095,12 +1199,12 @@ $("closeSend").onclick=async()=>{
     saveWeek(0); closeModal("closeBack");
     showAt(records.length+" recette"+(records.length>1?"s":"")+" mise"+(records.length>1?"s":"")+" à jour dans Airtable ("+calls+" appel"+(calls>1?"s":"")+")."+(missingN?" "+missingN+" introuvable"+(missingN>1?"s":"")+" dans Airtable, ignorée"+(missingN>1?"s":"")+".":""),"info");
   }catch(e){ showAt(atMessage(e)+" Vérifie dans Airtable avant de renvoyer : une partie a peut-être été enregistrée.","err"); }
-  finally{ $("closeSend").disabled=false; $("closeSend").textContent="Envoyer dans Airtable"; renderAll(); }
+  finally{ $("closeSend").disabled=false; $("closeSend").innerHTML='<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M227.32,28.68a16,16,0,0,0-15.66-4.08l-.15,0L19.57,82.84a16,16,0,0,0-2.49,29.8L102,154l41.3,84.87A15.86,15.86,0,0,0,157.74,248q.69,0,1.38-.06a15.88,15.88,0,0,0,14-11.51l58.2-191.94c0-.05,0-.1,0-.15A16,16,0,0,0,227.32,28.68ZM157.83,231.85l-.05.14,0-.07-40.06-82.3,48-48a8,8,0,0,0-11.31-11.31l-48,48L24.08,98.25l-.07,0,.14,0L216,40Z"/></svg>Envoyer dans Airtable'; renderAll(); }
 };
 
 /* ----- Modales ----- */
-function openModal(id,focusId){ $(id).hidden=false; document.body.style.overflow="hidden"; setTimeout(()=>{ const f=$(focusId); if(f) f.focus(); },0); }
-function closeModal(id){ $(id).hidden=true; if($("sheetBack").hidden&&$("moveBack").hidden&&$("copyBack").hidden&&$("closeBack").hidden) document.body.style.overflow=""; }
+function openModal(id,focusId){ $(id).classList.remove("closing"); $(id).hidden=false; document.body.style.overflow="hidden"; setTimeout(()=>{ const f=$(focusId); if(f) f.focus(); },0); }
+function closeModal(id){ const el=$(id); if(el.hidden||el.classList.contains("closing")) return; el.classList.add("closing"); setTimeout(()=>{ if(!el.classList.contains("closing")) return; el.hidden=true; el.classList.remove("closing"); if($("sheetBack").hidden&&$("moveBack").hidden&&$("copyBack").hidden&&$("closeBack").hidden) document.body.style.overflow=""; },180); }
 for(const [back,btn] of [["sheetBack","sheetClose"],["moveBack","moveClose"],["copyBack","copyClose"],["closeBack","closeClose"]]){
   $(btn).onclick=()=>{ closeModal(back); if(back==="sheetBack") pickingDay=null; };
   $(back).addEventListener("click",e=>{ if(e.target===$(back)){ closeModal(back); if(back==="sheetBack") pickingDay=null; } });
@@ -1143,11 +1247,11 @@ function renderSheet(){
   const freeOpen=$("freeBox")?$("freeBox").open:false;
   const libres=settings.libres.map((x,i)=>'<button class="pill" data-libre="'+i+'">'+esc(x.nom)+(x.dureeSec?", "+fmtDuree(x.dureeSec):"")+'</button>').join("");
   $("filters").innerHTML=
-    '<details class="free" id="freeBox"'+(freeOpen?" open":"")+'><summary>+ Repas hors Airtable (pizza, restes, resto…)</summary><div class="freebody">'+
+    '<details class="free" id="freeBox"'+(freeOpen?" open":"")+'><summary><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M232,96a7.89,7.89,0,0,0-.3-2.2L217.35,43.6A16.07,16.07,0,0,0,202,32H54A16.07,16.07,0,0,0,38.65,43.6L24.31,93.8A7.89,7.89,0,0,0,24,96h0v16a40,40,0,0,0,16,32v72a8,8,0,0,0,8,8H208a8,8,0,0,0,8-8V144a40,40,0,0,0,16-32V96ZM54,48H202l11.42,40H42.61Zm50,56h48v8a24,24,0,0,1-48,0Zm-16,0v8a24,24,0,0,1-35.12,21.26,7.88,7.88,0,0,0-1.82-1.06A24,24,0,0,1,40,112v-8ZM200,208H56V151.2a40.57,40.57,0,0,0,8,.8,40,40,0,0,0,32-16,40,40,0,0,0,64,0,40,40,0,0,0,32,16,40.57,40.57,0,0,0,8-.8Zm4.93-75.8a8.08,8.08,0,0,0-1.8,1.05A24,24,0,0,1,168,112v-8h48v8A24,24,0,0,1,204.93,132.2Z"/></svg>Repas hors Airtable (pizza, restes, resto…)</summary><div class="freebody">'+
       (libres?'<div class="chips wrapc">'+libres+'</div>':"")+
-      '<form class="freeform" id="freeForm"><input class="field" id="freeName" placeholder="Nom du repas" autocomplete="off" aria-label="Nom du repas"><input class="field" id="freeMin" type="number" inputmode="numeric" min="1" max="600" placeholder="min" aria-label="Durée en minutes (facultatif)"><button class="btn primary" type="submit">Ajouter</button></form>'+
+      '<form class="freeform" id="freeForm"><input class="field" id="freeName" placeholder="Nom du repas" autocomplete="off" aria-label="Nom du repas"><input class="field" id="freeMin" type="number" inputmode="numeric" min="1" max="600" placeholder="min" aria-label="Durée en minutes (facultatif)"><button class="btn primary" type="submit"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></svg>Ajouter</button></form>'+
       '<span class="small">La durée est facultative. Ces repas ne sont pas dans la liste d’épicerie.</span></div></details>'+
-    '<input class="field" id="q" type="search" placeholder="Chercher un nom de recette" value="'+esc(filt.q)+'" autocomplete="off">'+
+    '<label class="searchf"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg><input class="field" id="q" type="search" placeholder="Chercher un nom de recette" value="'+esc(filt.q)+'" autocomplete="off"></label>'+
     chipRow("type","Type de repas",[{v:"",l:"Tous"}].concat(uniq("type").map(x=>({v:x,l:x}))))+
     chipRow("proteine","Protéine principale",[{v:"",l:"Toutes"}].concat(uniq("proteine").map(x=>({v:x,l:x}))))+
     chipRow("duree","Préparation",[{v:"",l:"Peu importe"}].concat(DUREES.map(x=>({v:x.k,l:x.label}))))+
@@ -1165,7 +1269,7 @@ function renderList(){
   $("list").innerHTML=head+list.map(r=>{
     const t=fmtDuree(r.dureeSec), over=quick&&r.dureeSec!=null&&r.dureeSec>max;
     return '<button class="card'+(cur&&cur.id===r.id?" current":"")+'" data-id="'+esc(r.id)+'"><span class="t">'+esc(displayName(r))+'</span>'+
-      '<span class="m"><span class="chip'+(over?" over":"")+'">⏱ '+(t||"durée ?")+(over?", trop long ce soir":"")+'</span>'+(r.type?'<span class="chip">'+esc(r.type)+'</span>':"")+(r.proteine?'<span class="chip">'+esc(r.proteine)+'</span>':"")+
+      '<span class="m"><span class="chip'+(over?" over":"")+'"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"/></svg>'+(t||"durée ?")+(over?", trop long ce soir":"")+'</span>'+(r.type?'<span class="chip">'+esc(r.type)+'</span>':"")+(r.proteine?'<span class="chip">'+esc(r.proteine)+'</span>':"")+
       (r.status?'<span class="st '+stClass(r.status)+'">'+esc(r.status)+'</span>':"")+(r.note?starsRO(r.note):"")+(r.portions?'<span>'+r.portions+' portions</span>':"")+(r.fois?'<span>faite '+r.fois+' fois'+(r.derniere?", dernière le "+esc(fmtJour(r.derniere)):"")+'</span>':"")+'</span></button>';
   }).join("");
 }
@@ -1293,9 +1397,9 @@ function renderGroceries(){
     const left=list.filter(it=>!co[it.key]).length;
     if(hideDone) list=list.filter(it=>!co[it.key]);
     if(!list.length) continue;
-    out.push('<div class="cat"><h3><span>'+esc(c)+'</span><span>'+left+'</span></h3>'+list.map(it=>{
+    out.push('<div class="cat"><h3><span>'+(CAT_IC[c]||"")+esc(c)+'</span><span>'+left+'</span></h3>'+list.map(it=>{
       const q=fmtQty(it.qty,it.unit);
-      return '<label class="item'+(co[it.key]?" done":"")+'"><input type="checkbox" data-key="'+esc(it.key)+'"'+(co[it.key]?" checked":"")+'><span class="what">'+(q?'<span class="q">'+esc(q)+'</span> ':"")+esc(it.name)+(it.qty==null&&!it.extra?' <span class="small">(au goût)</span>':"")+(it.auGout&&it.qty!=null?' <span class="small">(+ au goût)</span>':"")+'<span class="src">'+esc(it.srcs.join(", "))+'</span></span>'+(it.extra?'<button class="rmx" data-rm="'+esc(it.extra)+'" aria-label="Retirer '+esc(it.name)+'">×</button>':"")+'</label>';
+      return '<label class="item'+(co[it.key]?" done":"")+'"><input type="checkbox" data-key="'+esc(it.key)+'"'+(co[it.key]?" checked":"")+'><span class="what">'+(q?'<span class="q">'+esc(q)+'</span> ':"")+esc(it.name)+(it.qty==null&&!it.extra?' <span class="small">(au goût)</span>':"")+(it.auGout&&it.qty!=null?' <span class="small">(+ au goût)</span>':"")+'<span class="src">'+esc(it.srcs.join(", "))+'</span></span>'+(it.extra?'<button class="rmx" data-rm="'+esc(it.extra)+'" aria-label="Retirer '+esc(it.name)+'"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></svg></button>':"")+'</label>';
     }).join("")+'</div>');
   }
   $("groc").innerHTML=out.join("")||(g.nbRecettes?'<div class="none">Tout est coché.</div>':"");
@@ -1324,15 +1428,15 @@ function renderAdd(){
   if(!addRows.length){ box.innerHTML='<div class="small">Aucune ligne pour l’instant.</div>'; }
   else box.innerHTML=addRows.map((r,i)=>
     '<div class="addrow" data-row="'+r.id+'">'+
-      '<div class="top"><input class="field" data-k="url" type="url" inputmode="url" placeholder="https://…" value="'+esc(r.url)+'" aria-label="Lien de la recette '+(i+1)+'"><button class="iconbtn" data-del="'+r.id+'" aria-label="Retirer la ligne">×</button></div>'+
+      '<div class="top"><input class="field" data-k="url" type="url" inputmode="url" placeholder="https://…" value="'+esc(r.url)+'" aria-label="Lien de la recette '+(i+1)+'"><button class="iconbtn" data-del="'+r.id+'" aria-label="Retirer la ligne"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"/></svg></button></div>'+
       '<input class="field" data-k="nom" placeholder="Titre en français (facultatif, sinon Claude le complétera)" value="'+esc(r.nom)+'">'+
       '<div class="row"><div class="chips" role="group" aria-label="Déjà essayée?"><button class="pill" data-ess="0" aria-pressed="'+(!r.essaye)+'">Pas encore essayée</button><button class="pill" data-ess="1" aria-pressed="'+r.essaye+'">Déjà essayée</button></div>'+
-        '<div class="stars" role="group" aria-label="Note sur 5">'+[1,2,3,4,5].map(n=>'<button data-note="'+n+'" class="'+(r.note>=n?"on":"")+'" aria-label="'+n+' sur 5">★</button>').join("")+'</div></div>'+
+        '<div class="stars" role="group" aria-label="Note sur 5">'+[1,2,3,4,5].map(n=>'<button data-note="'+n+'" class="'+(r.note>=n?"on":"")+'" aria-label="'+n+' sur 5"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M234.29,114.85l-45,38.83L203,211.75a16.4,16.4,0,0,1-24.5,17.82L128,198.49,77.47,229.57A16.4,16.4,0,0,1,53,211.75l13.76-58.07-45-38.83A16.46,16.46,0,0,1,31.08,86l59-4.76,22.76-55.08a16.36,16.36,0,0,1,30.27,0l22.75,55.08,59,4.76a16.46,16.46,0,0,1,9.37,28.86Z"/></svg></button>').join("")+'</div></div>'+
       '<input class="field" data-k="chg" placeholder="Changements faits (facultatif)" value="'+esc(r.chg)+'">'+
       (r.err?'<span class="rowerr">'+esc(r.err)+'</span>':"")+
     '</div>').join("");
   const n=addRows.filter(r=>r.url.trim()).length;
-  $("sendRows").textContent=n?"Envoyer "+n+" recette"+(n>1?"s":"")+" vers Airtable":"Envoyer vers Airtable";
+  $("sendRows").innerHTML='<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M227.32,28.68a16,16,0,0,0-15.66-4.08l-.15,0L19.57,82.84a16,16,0,0,0-2.49,29.8L102,154l41.3,84.87A15.86,15.86,0,0,0,157.74,248q.69,0,1.38-.06a15.88,15.88,0,0,0,14-11.51l58.2-191.94c0-.05,0-.1,0-.15A16,16,0,0,0,227.32,28.68ZM157.83,231.85l-.05.14,0-.07-40.06-82.3,48-48a8,8,0,0,0-11.31-11.31l-48,48L24.08,98.25l-.07,0,.14,0L216,40Z"/></svg>'+(n?"Envoyer "+n+" recette"+(n>1?"s":"")+" vers Airtable":"Envoyer vers Airtable");
   $("sendRows").disabled=!n;
   renderTodo();
 }
@@ -1342,7 +1446,7 @@ function renderTodo(){
   $("todoList").innerHTML='<span class="small">'+todo.length+' recette'+(todo.length>1?"s":"")+' à compléter. Copie la demande et colle-la dans une conversation avec Claude : il lira chaque page et remplira Airtable selon tes règles. Ensuite, mets les recettes à jour depuis Airtable.</span>'+
     '<ul class="todo small">'+todo.map(r=>{ const m=[]; if(!r.nom) m.push("titre"); if(!r.type) m.push("type"); if(!r.proteine) m.push("protéine"); if(!r.portions) m.push("portions"); if(!r.ingredients.trim()) m.push("ingrédients");
       return '<li><b style="color:var(--ink)">'+esc(displayName(r))+'</b> : '+esc(m.join(", "))+'</li>'; }).join("")+'</ul>'+
-    '<div class="toolbar"><button class="btn dark" id="copyAsk">Copier la demande pour Claude</button></div>';
+    '<div class="toolbar"><button class="btn dark" id="copyAsk"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"/></svg>Copier la demande pour Claude</button></div>';
   $("copyAsk").onclick=()=>{
     const txt="Complète dans ma base Airtable Recettes_Repas les recettes suivantes, selon mes règles habituelles : titre en français, durée = 1,5 × le temps total indiqué (laisser vide et me le signaler si le site ne donne pas le temps de préparation), protéine principale, type de repas, portions, et ingrédients dans le champ Ingrédients au format « quantité | unité | ingrédient | catégorie » (catégories : "+CATS.join(", ")+"). Tiens compte des changements notés. Ne rien inventer.\n\n"+
       todo.map(r=>"- "+r.lien+(r.changements?" (changements : "+r.changements.replace(/\s+/g," ")+")":"")+" — manque : "+[!r.nom&&"titre",!r.type&&"type",!r.proteine&&"protéine",!r.portions&&"portions",!r.ingredients.trim()&&"ingrédients"].filter(Boolean).join(", ")).join("\n");
@@ -1350,7 +1454,7 @@ function renderTodo(){
   };
 }
 const rowOf = el => { const d=el.closest("[data-row]"); return d&&addRows.find(r=>r.id===d.dataset.row); };
-$("addRows").addEventListener("input",e=>{ const r=rowOf(e.target), k=e.target.dataset.k; if(!r||!k) return; r[k]=e.target.value; r.err=""; if(k==="url"){ const n=addRows.filter(x=>x.url.trim()).length; $("sendRows").textContent=n?"Envoyer "+n+" recette"+(n>1?"s":"")+" vers Airtable":"Envoyer vers Airtable"; $("sendRows").disabled=!n; } });
+$("addRows").addEventListener("input",e=>{ const r=rowOf(e.target), k=e.target.dataset.k; if(!r||!k) return; r[k]=e.target.value; r.err=""; if(k==="url"){ const n=addRows.filter(x=>x.url.trim()).length; $("sendRows").innerHTML='<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M227.32,28.68a16,16,0,0,0-15.66-4.08l-.15,0L19.57,82.84a16,16,0,0,0-2.49,29.8L102,154l41.3,84.87A15.86,15.86,0,0,0,157.74,248q.69,0,1.38-.06a15.88,15.88,0,0,0,14-11.51l58.2-191.94c0-.05,0-.1,0-.15A16,16,0,0,0,227.32,28.68ZM157.83,231.85l-.05.14,0-.07-40.06-82.3,48-48a8,8,0,0,0-11.31-11.31l-48,48L24.08,98.25l-.07,0,.14,0L216,40Z"/></svg>'+(n?"Envoyer "+n+" recette"+(n>1?"s":"")+" vers Airtable":"Envoyer vers Airtable"); $("sendRows").disabled=!n; } });
 $("addRows").addEventListener("click",e=>{
   const del=e.target.closest("[data-del]"); if(del){ addRows=addRows.filter(r=>r.id!==del.dataset.del); renderAdd(); return; }
   const r=rowOf(e.target); if(!r) return;
@@ -1397,7 +1501,7 @@ function renderReglages(){
   $("tokenPanel").hidden=MODE!=="autonome";
   if(MODE==="autonome"){ const t=getToken(); $("tokenState").textContent=t?"Jeton enregistré sur cet appareil (…"+t.slice(-4)+").":"Aucun jeton enregistré."; }
   $("recipeState").textContent="Copie actuelle : "+copyLabel()+", "+recipes.length+" recette"+(recipes.length>1?"s":"")+".";
-  $("updRecipes").disabled=refreshing; $("updRecipes").textContent=refreshing?"Lecture d’Airtable…":"Mettre à jour depuis Airtable";
+  $("updRecipes").disabled=refreshing; $("updRecipes").innerHTML='<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,48V96a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h28.69L182.06,73.37a79.56,79.56,0,0,0-56.13-23.43h-.45A79.52,79.52,0,0,0,69.59,72.71,8,8,0,0,1,58.41,61.27a96,96,0,0,1,135,.79L208,76.69V48a8,8,0,0,1,16,0ZM186.41,183.29a80,80,0,0,1-112.47-.66L59.31,168H88a8,8,0,0,0,0-16H40a8,8,0,0,0-8,8v48a8,8,0,0,0,16,0V179.31l14.63,14.63A95.43,95.43,0,0,0,130,222.06h.53a95.36,95.36,0,0,0,67.07-27.33,8,8,0,0,0-11.18-11.44Z"/></svg>'+(refreshing?"Lecture d’Airtable…":"Mettre à jour depuis Airtable");
   $("syncInfo").textContent=(settings.envoyeLe?"Dernier envoi : "+fmtDate(new Date(settings.envoyeLe))+". ":"Aucun envoi pour l’instant. ")+(MODE==="claude"?"Dans Claude, tes menus sont déjà sauvegardés automatiquement et suivent ton compte d’un appareil à l’autre.":"Dans cette version, tes menus sont gardés sur cet appareil seulement.");
 }
 function renderSettings(){
